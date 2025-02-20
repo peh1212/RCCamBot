@@ -28,7 +28,7 @@
 
 ***
 ### 1. 시스템 기획
-&emsp; ![image](https://github.com/user-attachments/assets/2efff8f4-a35a-4d3f-910e-7179a3bd21bf) <br>
+&emsp; ![시스템기획](https://github.com/user-attachments/assets/aec19f8a-0219-44e0-80bf-7f8e623c7a8b) <br>
 &emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈입니다. <br>
 &emsp; 이 프로젝트에서는 ESP32-CAM을 활용하여 RC카를 제작하고, 원격 제어 및 실시간 카메라 스트리밍 기능을 구현합니다. <br>
 &emsp; ESP32-CAM은 Wi-Fi를 통해 Spring Boot 서버와 통신하며, HTTP POST 요청을 수신하여 RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공합니다. <br>
@@ -39,7 +39,7 @@
 ***
 ### 2. 하드웨어 설계
 :zap: **1. 전체 회로도 그리기** <br>
-&emsp; ![image](https://github.com/user-attachments/assets/ae1fe1f1-d1a6-4508-b4f8-68f5c74362c0) <br>
+&emsp; ![전체 회로](https://github.com/user-attachments/assets/fecb2289-c9cc-4c74-9f7a-d6c053ef4e7b) <br>
 &emsp; 위와 같이 전체 회로를 구성합니다. <br>
 &emsp; 전원은 18650 배터리를 2S2P로 연결하여 사용합니다. <br>
 &emsp; 스텝다운 컨버터를 사용하여 ESP32-CAM에 5V 전원을 공급합니다. <br>
@@ -440,25 +440,25 @@ void startCameraServer() {
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
 <br>
 &emsp; :white_check_mark: **ESP32-CAM에 핀을 연결하고 테스트하기** <br>
-&emsp; <img src="https://github.com/user-attachments/assets/82ef672c-ad6e-4ace-b3a8-91defaf5adec" width="auto" height="auto" /> <br>
+&emsp; ![esp32cam 업로드보드](https://github.com/user-attachments/assets/1ae8f680-7176-4a1e-9641-5206aaf35128) <br>
 &emsp; ESP32-CAM에 업로드보드를 연결한 상태에서는 핀을 꽂을 수 없게 되어있습니다. <br>
 &emsp; (업로드 모드와 실행 모드에서 일부 핀이 다르게 동작하기 때문에 이렇게 만들었다고 합니다) <br>
 &emsp; 하지만 업로드보드를 빼는 순간 전원이 끊기기 때문에 ESP32-CAM의 전원이 꺼지게 됩니다. <br>
 &emsp; ESP32는 DHCP(Dynamic Host Configuration Protocol)를 사용하여 전원을 켰을 때 라우터에서 IP 주소를 자동으로 할당해줍니다. <br>
-&emsp; 따라서 핀을 연결하기 위해 업로드보드를 빼고 외부 전원을 연결하면 ESP32-CAM이 재부팅되면서 IP 주소가 달라지고, 시리얼모니터와도 연결이 끊겨서 IP 주소를 알 수 없게 됩니다. <br>
-&emsp; ![image](https://github.com/user-attachments/assets/e9d737eb-253f-42f2-b6f0-22f372ccb1a0) <br>
-&emsp; 고정 IP를 설정하여 전원을 껐다 켜도 동일한 IP 주소를 유지하도록 하는 방법도 많이 사용되지만, 이후에 ESP32-CAM이 부팅될 때 IP 주소를 서버로 전송하는 방식으로 구현할 것이기 때문에 여기서는 일단 동적 IP 주소를 사용하고 IP 스캐너로 찾아내서 테스트를 진행합니다. <br>
-&emsp; ![image](https://github.com/user-attachments/assets/2ce7ec38-527e-41d4-b7ac-9d83d660c71c) <br>
+&emsp; 따라서 핀을 연결하기 위해 업로드보드를 빼고 외부 전원을 연결하면 ESP32-CAM이 재부팅되면서 IP 주소가 달라지고, 시리얼모니터와도 연결이 끊겨서 IP 주소를 알 수 없게 됩니다. <br><br>
+&emsp; ![IPScan](https://github.com/user-attachments/assets/7044c6de-d2df-4bd7-be46-4fd6da13c241) <br>
+&emsp; 고정 IP를 설정하여 전원을 껐다 켜도 동일한 IP 주소를 유지하도록 하는 방법도 많이 사용되지만, 이후에 ESP32-CAM이 부팅될 때 IP 주소를 서버로 전송하는 방식으로 구현할 것이기 때문에 여기서는 일단 동적 IP 주소를 사용하고 IP 스캐너로 찾아내서 테스트를 진행합니다. <br><br>
+&emsp; ![Relay Post요청 OK](https://github.com/user-attachments/assets/dd73d276-7684-47b9-80de-12eb97dbcec7) <br>
 &emsp; Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 테스트합니다. <br><br>
 
 &emsp; 1. 카메라 웹 스트리밍 테스트 <br>
-&emsp; ![cameratest](https://github.com/user-attachments/assets/542c2408-2044-4a7e-9b58-cc3b41f10af1) <br>
+&emsp; ![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
 &emsp; 2. 서보모터 제어 테스트 <br>
-&emsp; ![servotest](https://github.com/user-attachments/assets/102a6f44-aff0-4576-8e8b-ccb2a664db58) <br>
+&emsp; ![servotest](https://github.com/user-attachments/assets/59318f70-2557-4b74-91ca-4afb1a7bbb75) <br><br>
 &emsp; 3. DC모터 제어 테스트 <br>
-&emsp; ![dcmotortest](https://github.com/user-attachments/assets/a180f022-0b80-48b4-adc9-ca0bb761a3a6) <br>
+&emsp; ![dcmotortest](https://github.com/user-attachments/assets/92a1e8cf-5550-4d74-b90c-69e64474db42) <br><br>
 &emsp; 4. 릴레이 제어 테스트 <br>
-&emsp; ![relaytest](https://github.com/user-attachments/assets/3a29062d-9127-4b59-81bd-ad948f0707d5) <br>
+&emsp; ![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
 
 :thumbsup: **3. 작동에 문제가 없는것을 확인한 후 하드웨어 구성을 확정합니다.** <br><br>
 
@@ -466,16 +466,16 @@ void startCameraServer() {
 ***
 ### 4. 기구설계
 :airplane: **1. 프레임 그리기** <br>
-&emsp; ![image](https://github.com/user-attachments/assets/148cd042-3169-4b11-9cea-916ac9b8779a) <br>
+&emsp; ![모델링](https://github.com/user-attachments/assets/31728857-17fe-4532-88ec-d66a8bec42e3) <br>
 &emsp; 하드웨어 부품들을 모델링하고, 이들을 조립할 수 있도록 프레임을 설계합니다. <br>
 &emsp; 파란색으로 모델링한 파트가 가공을 의뢰할 부품입니다. <br><br>
 
 :speech_balloon: **2. 제작 의뢰하기** <br>
-&emsp; ![image](https://github.com/user-attachments/assets/b21b3928-c507-4a54-bcc9-9dbbca81cb96) <br>
+&emsp; ![가공도면](https://github.com/user-attachments/assets/433f39f4-1ac4-458d-9f15-d08f7484597b) <br>
 &emsp; 2D 도면을 작성하고, 알루미늄 가공업체에 제작을 의뢰합니다. <br><br>
 
 :nut_and_bolt: **3. 조립하기** <br>
-&emsp; ![조립 테스트](https://github.com/user-attachments/assets/3c618aed-807d-4168-90b6-636fbc664568) <br>
+&emsp; ![조립 후 테스트](https://github.com/user-attachments/assets/c1880c53-5f9b-4607-bfc6-78e77f13b42f) <br>
 &emsp; 2대 조립 완료 후 테스트합니다. <br><br>
 
 ***
