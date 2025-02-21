@@ -21,9 +21,8 @@
 &emsp; [1. 시스템 기획](#1-시스템-기획) <br>
 &emsp; [2. 하드웨어 설계](#2-하드웨어-설계) <br>
 &emsp; [3. 펌웨어 개발](#3-펌웨어-개발) <br>
-&emsp; [4. 기구설계](#4-기구설계) <br>
-&emsp; [5. 백엔드 개발](#5-백엔드-개발) <br>
-&emsp; [6. 안드로이드앱 개발](#6-안드로이드앱-개발) <br>
+&emsp; [4. 백엔드 개발](#4-백엔드-개발) <br>
+&emsp; [5. 안드로이드앱 개발](#5-안드로이드앱-개발) <br>
 <br>
 
 ***
@@ -76,8 +75,10 @@
 ***
 ### 3. 펌웨어 개발
 :memo: **1. 아두이노 IDE를 이용하여, HTTP 요청으로 카메라 스트리밍, 서보모터, DC모터, 릴레이를 제어하는 코드를 구현하고, ESP32-CAM에 업로드합니다.** <br>
-:white_check_mark: `와이파이 정보와, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
-&emsp; `와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
+:bangbang: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
+&emsp; `-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
+&emsp; `-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
+&emsp; `-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
 
 #### ESP32CAM.ino
 ```C++
@@ -305,7 +306,7 @@ static esp_err_t servo_handler(httpd_req_t *req){
     servo1.write(currentAngle1);
   } else if (servo_num == 2) {
     currentAngle2 += direction;
-    currentAngle2 = constrain(currentAngle1, 0, 180); // 각도제한 0~180
+    currentAngle2 = constrain(currentAngle2, 0, 180); // 각도제한 0~180
     servo2.write(currentAngle2);
   } else {
     return ESP_FAIL;
@@ -460,26 +461,12 @@ void startCameraServer() {
 &emsp; 4. 릴레이 제어 테스트 <br>
 &emsp; ![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
 
-:thumbsup: **3. 작동에 문제가 없는것을 확인한 후 하드웨어 구성을 확정합니다.** <br><br>
-
-
-***
-### 4. 기구설계
-:airplane: **1. 프레임 그리기** <br>
-&emsp; ![모델링](https://github.com/user-attachments/assets/31728857-17fe-4532-88ec-d66a8bec42e3) <br>
-&emsp; 하드웨어 부품들을 모델링하고, 이들을 조립할 수 있도록 프레임을 설계합니다. <br>
-&emsp; 파란색으로 모델링한 파트가 가공을 의뢰할 부품입니다. <br><br>
-
-:speech_balloon: **2. 제작 의뢰하기** <br>
-&emsp; ![가공도면](https://github.com/user-attachments/assets/433f39f4-1ac4-458d-9f15-d08f7484597b) <br>
-&emsp; 2D 도면을 작성하고, 알루미늄 가공업체에 제작을 의뢰합니다. <br><br>
-
 :nut_and_bolt: **3. 조립하기** <br>
 &emsp; ![조립 후 테스트](https://github.com/user-attachments/assets/c1880c53-5f9b-4607-bfc6-78e77f13b42f) <br>
-&emsp; 2대 조립 완료 후 테스트합니다. <br><br>
+&emsp; 알루미늄 프레임을 제작하여 2대를 조립한 후 테스트합니다. <br><br>
 
 ***
-### 5. 백엔드 개발
+### 4. 백엔드 개발
 
 ***
-### 6. 안드로이드앱 개발
+### 5. 안드로이드앱 개발
