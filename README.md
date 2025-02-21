@@ -436,7 +436,7 @@ void startCameraServer() {
 // 엔드포인트 : http://(ESP32-CAM IP주소)/relay
 // Body : 0~1 (0: OFF, 1: ON)
 ```
-<br><br>
+<br>
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
 <br>
@@ -447,10 +447,8 @@ void startCameraServer() {
 &emsp; 하지만 업로드보드를 빼는 순간 전원이 끊기기 때문에 ESP32-CAM의 전원이 꺼지게 됩니다. <br>
 &emsp; ESP32는 DHCP(Dynamic Host Configuration Protocol)를 사용하여 전원을 켰을 때 라우터에서 IP 주소를 자동으로 할당해줍니다. <br>
 &emsp; 따라서 핀을 연결하기 위해 업로드보드를 빼고 외부 전원을 연결하면 ESP32-CAM이 재부팅되면서 IP 주소가 달라지고, 시리얼모니터와도 연결이 끊겨서 IP 주소를 알 수 없게 됩니다. <br><br>
-&emsp; ![IPScan](https://github.com/user-attachments/assets/7044c6de-d2df-4bd7-be46-4fd6da13c241) <br>
-&emsp; 고정 IP를 설정하여 전원을 껐다 켜도 동일한 IP 주소를 유지하도록 하는 방법도 많이 사용되지만, 이후에 ESP32-CAM이 부팅될 때 IP 주소를 서버로 전송하는 방식으로 구현할 것이기 때문에 여기서는 일단 동적 IP 주소를 사용하고 IP 스캐너로 찾아내서 테스트를 진행합니다. <br><br>
-&emsp; ![Relay Post요청 OK](https://github.com/user-attachments/assets/dd73d276-7684-47b9-80de-12eb97dbcec7) <br>
-&emsp; Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 테스트합니다. <br><br>
+&emsp; 고정 IP를 설정하여 전원을 껐다 켜도 동일한 IP 주소를 유지하도록 하는 방법도 많이 사용되지만, 이후에 ESP32-CAM이 부팅될 때 IP 주소를 서버로 전송하는 방식으로 구현할 것이기 때문에 여기서는 일단 동적 IP 주소를 사용하고 IP 스캐너로 찾아내서 테스트를 진행합니다. <br>
+&emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
 
 &emsp; 1. 카메라 웹 스트리밍 테스트 <br>
 &emsp; ![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
