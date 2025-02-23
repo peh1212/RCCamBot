@@ -75,7 +75,7 @@
 ***
 ### 3. 펌웨어 개발
 :memo: **1. 아두이노 IDE를 이용하여, HTTP 요청으로 카메라 스트리밍, 서보모터, DC모터, 릴레이를 제어하는 코드를 구현하고, ESP32-CAM에 업로드합니다.** <br>
-:bangbang: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
+:warning: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
 &emsp; `-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
 &emsp; `-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
 &emsp; `-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
@@ -474,7 +474,107 @@ void startCameraServer() {
 &emsp; Name : `SpringBootApi` <br>
 &emsp; Packaging : `Jar` <br>
 &emsp; Java : `23` <br>
-&emsp; Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br>
+&emsp; Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br><br>
+
+:blue_book: **2. Entity 정의하기** <br>
+&emsp; DB에 저장하기 위한 Entity를 정의합니다. <br>
+#### Esp32CamInfo.java
+```Java
+@Builder
+@ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name="esp32_cam_device")
+class Esp32CamDevice {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id; // DB 저장용 id (자동으로 증가)
+	@Column(unique = true)
+	private String macAddress; // ESP32-CAM의 고유 ID (MAC 주소)
+	@Column
+	private String deviceName; // 안드로이드 앱에서 설정한 이름
+	@Column
+	private String deviceIp; // ESP32-CAM 부팅 시 IP주소 (접근하기 위한 주소)
+}
+
+@Builder
+@ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "esp32_cam_image")
+class Esp32CamImage { // ESP32-CAM이 찍은 사진
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id; // 기본키
+	@Lob
+	@Column
+	private byte[] image; // 사진 데이터
+	@Column
+	private LocalDateTime createdAt;  // 사진 촬영 시간
+	@ManyToOne // 다대일 관계, RC카 1대가 여러 장의 사진을 찍어서 저장
+	@JoinColumn(name="esp32_cam_device_id")
+	private Esp32CamDevice esp32CamDevice; // 외래키 생성, Esp32CamDevice 기본키와 맵핑
+
+	@PrePersist
+	protected void onCreate() {
+		this.createdAt = LocalDateTime.now();  // 자동으로 현재 시간 저장
+	}
+}
+```
+<br>
+
+:books: **3. Repository 인터페이스 구현하기** <br>
+&emsp; Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
+#### Esp32CamInfo.java
+```Java
+interface Esp32CamDeviceRepo extends JpaRepository<Esp32CamDevice, Long> {
+}
+
+interface Esp32CamImageRepo extends JpaRepository<Esp32CamImage, Long> {
+}
+```
+<br>
+
+:airplane: **4. DTO 구현하기** <br>
+&emsp; 데이터를 주고받기 위한 DTO를 구현합니다. <br>
+#### Esp32CamInfo.java
+```Java
+@AllArgsConstructor
+@Getter
+@Builder
+@ToString
+class Esp32CamDeviceDTO {
+	private Long id;
+	private String macAddress;
+	private String deviceName;
+	private String deviceIp;
+}
+
+@AllArgsConstructor
+@Getter
+@Builder
+@ToString
+class Esp32CamImageDTO {
+	private Long id;
+	private byte[] image;
+	private LocalDateTime createdAt;
+	private String deviceName;
+	private Long deviceId;
+}
+```
+<br>
+
+:twisted_rightwards_arrows: **5. RestController 구현하기** <br>
+&emsp; `전체 RC카 조회하기`, `특정 RC카 조회하기`, `RC카 등록(생성)하기`, `RC카 정보 수정하기(동적으로 설정된 ESP32-CAM의 IP주소를 덮어씀)`, `특정 RC카 삭제하기`, `전체 이미지 조회하기`, `특정 RC카의 이미지 조회하기`를 구현합니다. <br>
+
+#### RestController.java
+
 
 
 ***
