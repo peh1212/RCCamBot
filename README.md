@@ -79,6 +79,7 @@
 &emsp; `-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
 &emsp; `-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
 &emsp; `-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
+&emsp; `-아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
 
 #### ESP32CAM.ino
 ```C++
@@ -465,6 +466,16 @@ void startCameraServer() {
 
 ***
 ### 4. 백엔드 개발
+:seedling: **1. 프로젝트 생성하기** <br>
+&emsp; start.spring.io에서 스프링부트 프로젝트를 생성합니다. <br>
+&emsp; Project : `Gradle - Groovy` <br>
+&emsp; Language : `Java` <br>
+&emsp; Spring Boot : `3.4.3` <br>
+&emsp; Name : `SpringBootApi` <br>
+&emsp; Packaging : `Jar` <br>
+&emsp; Java : `23` <br>
+&emsp; Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br>
+
 
 ***
 ### 5. 안드로이드앱 개발
