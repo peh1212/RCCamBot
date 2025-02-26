@@ -477,7 +477,7 @@ void startCameraServer() {
 &emsp; Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br><br>
 
 :blue_book: **2. Entity 정의하기** <br>
-&emsp; DB에 저장하기 위한 Entity를 정의합니다. <br>
+&emsp; DB에 RC카 정보를 저장하기 위한 Entity를 정의합니다. <br>
 #### Esp32CamInfo.java
 ```Java
 @Builder
@@ -489,15 +489,15 @@ void startCameraServer() {
 @Entity
 @Table(name="esp32_cam_device")
 class Esp32CamDevice {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; // DB 저장용 id (자동으로 증가)
-	@Column(unique = true)
-	private String macAddress; // ESP32-CAM의 고유 ID (MAC 주소)
-	@Column
-	private String deviceName; // 안드로이드 앱에서 설정한 이름
-	@Column
-	private String deviceIp; // ESP32-CAM 부팅 시 IP주소 (접근하기 위한 주소)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // DB 저장용 id (자동으로 증가)
+    @Column(unique = true)
+    private String macAddress; // ESP32-CAM의 고유 ID (MAC 주소)
+    @Column
+    private String deviceName; // 안드로이드 앱에서 설정한 이름
+    @Column(nullable = false)
+    private String deviceIp; // ESP32-CAM 부팅 시 IP주소 (접근하기 위한 주소)
 }
 
 @Builder
@@ -509,33 +509,33 @@ class Esp32CamDevice {
 @Entity
 @Table(name = "esp32_cam_image")
 class Esp32CamImage { // ESP32-CAM이 찍은 사진
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; // 기본키
-	@Lob
-	@Column
-	private byte[] image; // 사진 데이터
-	@Column
-	private LocalDateTime createdAt;  // 사진 촬영 시간
-	@ManyToOne // 다대일 관계, RC카 1대가 여러 장의 사진을 찍어서 저장
-	@JoinColumn(name="esp32_cam_device_id")
-	private Esp32CamDevice esp32CamDevice; // 외래키 생성, Esp32CamDevice 기본키와 맵핑
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // 기본키
+    @Column
+    private String imagePath; // 사진 데이터(로컬 경로로 저장)
+    @Column
+    private LocalDateTime createdAt;  // 사진 촬영 시간
+    @ManyToOne // 다대일 관계, RC카 1대가 여러 장의 사진을 찍어서 저장
+    @JoinColumn(name="esp32_cam_device_id")
+    private Esp32CamDevice esp32CamDevice; // 외래키 생성, Esp32CamDevice 기본키와 맵핑
 
-	@PrePersist
-	protected void onCreate() {
-		this.createdAt = LocalDateTime.now();  // 자동으로 현재 시간 저장
-	}
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();  // 자동으로 현재 시간 저장
+    }
 }
 ```
 <br>
 
 :books: **3. Repository 인터페이스 구현하기** <br>
 &emsp; Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
+&emsp; Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 조회하는 쿼리 메서드를 추가합니다. <br>
 #### Esp32CamInfo.java
 ```Java
 interface Esp32CamDeviceRepo extends JpaRepository<Esp32CamDevice, Long> {
+    Optional<Esp32CamDevice> findByMacAddress(String macAddress);
 }
-
 interface Esp32CamImageRepo extends JpaRepository<Esp32CamImage, Long> {
 }
 ```
@@ -550,10 +550,10 @@ interface Esp32CamImageRepo extends JpaRepository<Esp32CamImage, Long> {
 @Builder
 @ToString
 class Esp32CamDeviceDTO {
-	private Long id;
-	private String macAddress;
-	private String deviceName;
-	private String deviceIp;
+    private Long id;
+    private String macAddress;
+    private String deviceName;
+    private String deviceIp;
 }
 
 @AllArgsConstructor
@@ -561,20 +561,239 @@ class Esp32CamDeviceDTO {
 @Builder
 @ToString
 class Esp32CamImageDTO {
-	private Long id;
-	private byte[] image;
-	private LocalDateTime createdAt;
-	private String deviceName;
-	private Long deviceId;
+    private Long id;
+    private String imagePath;
+    private LocalDateTime createdAt;
+    private String deviceName;
+    private Long deviceId;
 }
 ```
 <br>
 
-:twisted_rightwards_arrows: **5. RestController 구현하기** <br>
-&emsp; `전체 RC카 조회하기`, `특정 RC카 조회하기`, `RC카 등록(생성)하기`, `RC카 정보 수정하기(동적으로 설정된 ESP32-CAM의 IP주소를 덮어씀)`, `특정 RC카 삭제하기`, `전체 이미지 조회하기`, `특정 RC카의 이미지 조회하기`를 구현합니다. <br>
+:arrow_forward: **5. Service 구현하기** <br>
+&emsp; 서비스 클래스를 생성하여 RC카 등록, 조회, 정보 수정, 특정 RC카 삭제, 서보모터, DC모터, 릴레이 제어, 사진 찍기, 전체 이미지 조회하기 기능을 처리하는 로직을 구현합니다. <br>
 
-#### RestController.java
+#### RCCarService.java
+```Java
+@Service
+public class RCCarService {
 
+    private final Esp32CamDeviceRepo deviceRepo;
+    private final Esp32CamImageRepo imageRepo;
+
+    @Value("${image.storage.path}")  // application.properties에 이미지 저장 경로 설정
+    private String storagePath;
+
+    public RCCarService(Esp32CamDeviceRepo deviceRepo, Esp32CamImageRepo imageRepo) {
+        this.deviceRepo = deviceRepo;
+        this.imageRepo = imageRepo;
+    }
+
+    // id로 장치 조회하기
+    public Esp32CamDevice getDeviceById(Long id) {
+        return deviceRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 장치가 없습니다."));
+    }
+
+    // RC카 등록하기 (IP, MAC 주소 저장)
+    @Transactional
+    public Esp32CamDevice registerDevice(String macAddress, String ipAddress, String deviceName) {
+        Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
+                .orElse(Esp32CamDevice.builder()
+                        .macAddress(macAddress)
+                        .deviceIp(ipAddress)
+                        .deviceName(deviceName)
+                        .build());
+        device.setDeviceIp(ipAddress);
+        return deviceRepo.save(device);
+    }
+
+    // 전체 RC카 조회하기
+    public List<Esp32CamDevice> getAllDevices() {
+        return deviceRepo.findAll();
+    }
+
+    // RC카 수정하기
+    @Transactional
+    public Esp32CamDevice updateDevice(Long deviceId, String deviceName, String ipAddress) {
+        // 해당 ID의 장치가 존재하는지 확인
+        Esp32CamDevice device = deviceRepo.findById(deviceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 장치가 없습니다."));
+
+        // 수정할 필드 값 설정
+        if (deviceName != null && !deviceName.isEmpty()) {
+            device.setDeviceName(deviceName);
+        }
+        if (ipAddress != null && !ipAddress.isEmpty()) {
+            device.setDeviceIp(ipAddress);
+        }
+
+        // 수정된 장치 저장
+        return deviceRepo.save(device);
+    }
+
+    // RC카 삭제하기
+    @Transactional
+    public void deleteDevice(Long deviceId) {
+        Esp32CamDevice device = deviceRepo.findById(deviceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 장치가 없습니다."));
+
+        deviceRepo.delete(device);  // 장치 삭제
+    }
+
+    // 서보모터 제어
+    public String controlServo(int servoId, int angle) {
+        return servoId + "번 서보모터 " + angle + "도로 이동";
+    }
+
+    // DC모터 제어
+    public String controlMotor(int command) {
+        String action;
+        switch (command) {
+            case 0 -> action = "정지";
+            case 1 -> action = "전진";
+            case 2 -> action = "후진";
+            case 3 -> action = "좌회전";
+            case 4 -> action = "우회전";
+            default -> throw new IllegalArgumentException("잘못된 명령어");
+        }
+        return "RC카 " + action;
+    }
+
+    // Light 제어
+    public String controlRelay(int state) {
+        return state == 1 ? "Relay ON" : "Relay OFF";
+    }
+
+    // RC카가 찍은 사진 저장하기
+    @Transactional
+    public Esp32CamImage saveImage(Long deviceId, String imageData) {
+        Esp32CamDevice device = deviceRepo.findById(deviceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 장치가 없습니다."));
+
+        String fileName = UUID.randomUUID() + ".jpg";
+        String filePath = Paths.get(storagePath, fileName).toString();
+
+        Path sourcePath = Path.of(imageData);
+        Path destinationPath = Path.of(filePath);
+
+        try {
+            Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 저장 실패", e);
+        }
+
+        Esp32CamImage image = Esp32CamImage.builder()
+                .imagePath(filePath)
+                .esp32CamDevice(device)
+                .build();
+
+        return imageRepo.save(image);
+    }
+
+    // RC카가 찍은 사진 조회하기
+    public Resource getImageById(Long imageId) {
+        Esp32CamImage image = imageRepo.findById(imageId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 이미지가 없습니다."));
+        return new FileSystemResource(new File(image.getImagePath()));
+    }
+}
+```
+
+:twisted_rightwards_arrows: **6. RestController 구현하기** <br>
+&emsp; 컨트롤러를 구현합니다. <br>
+```Java
+@RestController
+@RequestMapping("/api/rc")
+public class RCCarController {
+
+    private final RCCarService rcCarService;
+
+    public RCCarController(RCCarService rcCarService) {
+        this.rcCarService = rcCarService;
+    }
+
+    // id로 장치 조회하기
+    @GetMapping("/device/{id}")
+    public ResponseEntity<Esp32CamDevice> getDevice(@PathVariable Long id) {
+        Esp32CamDevice device = rcCarService.getDeviceById(id);
+        return ResponseEntity.ok(device);
+    }
+
+    // RC카 등록하기
+    @PostMapping("/register")
+    public ResponseEntity<Esp32CamDevice> registerDevice(@RequestBody Map<String, String> request) {
+        String macAddress = request.get("macAddress");
+        String ipAddress = request.get("ipAddress");
+        String deviceName = request.get("deviceName");
+        Esp32CamDevice device = rcCarService.registerDevice(macAddress, ipAddress, deviceName);
+        return ResponseEntity.ok(device);
+    }
+
+    // 전체 RC카 조회하기
+    @GetMapping("/devices")
+    public ResponseEntity<List<Esp32CamDevice>> getDevices() {
+        return ResponseEntity.ok(rcCarService.getAllDevices());
+    }
+
+    // RC카 수정하기
+    @PatchMapping("/device/{id}")
+    public ResponseEntity<Esp32CamDevice> updateDevice(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String deviceName = request.get("deviceName");
+        String deviceIp = request.get("deviceIp");
+
+        Esp32CamDevice updatedDevice = rcCarService.updateDevice(id, deviceName, deviceIp);
+        return ResponseEntity.ok(updatedDevice);
+    }
+
+
+    // RC카 삭제하기
+    @DeleteMapping("/device/{deviceId}")
+    public ResponseEntity<String> deleteDevice(@PathVariable Long deviceId) {
+        rcCarService.deleteDevice(deviceId);
+        return ResponseEntity.ok("장치 삭제 완료");
+    }
+
+    // 서보모터 제어
+    @PostMapping("/servo")
+    public ResponseEntity<String> controlServo(@RequestBody Map<String, Integer> request) {
+        int servoId = request.get("servoId");
+        int angle = request.get("angle");
+        return ResponseEntity.ok(rcCarService.controlServo(servoId, angle));
+    }
+
+    // DC모터 제어
+    @PostMapping("/motor")
+    public ResponseEntity<String> controlMotor(@RequestBody Map<String, Integer> request) {
+        int command = request.get("command");
+        return ResponseEntity.ok(rcCarService.controlMotor(command));
+    }
+
+    // LED 스위치 제어
+    @PostMapping("/relay")
+    public ResponseEntity<String> controlRelay(@RequestBody Map<String, Integer> request) {
+        int state = request.get("state");
+        return ResponseEntity.ok(rcCarService.controlRelay(state));
+    }
+
+    // 이미지 저장하기
+    @PostMapping("/image/upload/{deviceId}")
+    public ResponseEntity<String> uploadImage(@PathVariable Long deviceId, @RequestBody String imageData) {
+        Esp32CamImage savedImage = rcCarService.saveImage(deviceId, imageData);
+        return ResponseEntity.ok("이미지 저장 완료: " + savedImage.getImagePath());
+    }
+
+    // 이미지 가져오기
+    @GetMapping("/image/{imageId}")
+    public ResponseEntity<Resource> getImage(@PathVariable Long imageId) {
+        Resource imageResource = rcCarService.getImageById(imageId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(imageResource);
+    }
+}
+```
+<br>
 
 
 ***
