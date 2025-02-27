@@ -727,13 +727,13 @@ public class RCCarService {
 | id로 장치 조회하기 | GET | /api/rc/{id} | X |
 | RC카 등록하기 | POST | /api/rc/register | macAddress, ipAddress, deviceName |
 | 전체 RC카 조회하기 | GET | /api/rc/devices | X |
-| RC카 수정하기 | PATCH | /api/rc/device/{id} | id, macAddress, ipAddress, deviceName |
-| RC카 삭제하기 | DELETE | /api/rc/device/{id} | id |
+| RC카 수정하기 | PATCH | /api/rc/device/{id} | macAddress, ipAddress, deviceName |
+| RC카 삭제하기 | DELETE | /api/rc/device/{id} | X |
 | 서보모터 제어 | POST | /api/rc/servo | servoId, angle |
 | DC모터 제어 | POST | /api/rc/motor | command(0~4) |
 | 릴레이 스위치 제어 | POST | /api/rc/relay | 0 or 1 |
-| 이미지 저장하기 | POST | /image/upload/{id} | id, imageData |
-| 이미지 가져오기 | GET | /image/{id} | id |
+| 이미지 저장하기 | POST | /image/upload/{id} | imageData |
+| 이미지 가져오기 | GET | /image/{id} | X |
 
 ### RCCarController.java
 ```Java
@@ -833,7 +833,7 @@ public class RCCarController {
 <br>
 
 :mag_right: **7. H2 DB 연동 및 CRUD 동작 확인하기** <br>
-&emsp; `application.properties`에 H2 DB 관련 설정들을 추가합니다. <br>
+&emsp; `application.properties`에 H2 DB 관련 설정들을 추가하고 CRUD 기능을 테스트합니다. <br>
 ```Java
 spring.datasource.url=jdbc:h2:mem:testdb // h2 db 주소 고정
 spring.h2.console.enabled=true // h2콘솔 활성화
@@ -846,8 +846,25 @@ spring.jpa.hibernate.ddl-auto=update
 &emsp; ![h2db 테스트](https://github.com/user-attachments/assets/028480b7-872e-4a78-906b-17d1c2b7e211) <br>
 
 :floppy_disk: **8. PostgreSQL DB 전환** <br>
+&emsp; PostgreSQL DB에서 프로젝트를 생성한 후, `application.properties`에 PostgreSQL 설정을 추가하여 H2 DB 대신 PostgreSQL DB를 연결합니다. <br>
+```Java
+spring.datasource.url=jdbc:postgresql://localhost:5432/RCCamBot
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.datasource.username=postgres
+spring.datasource.password=p
+spring.datasource.data=classpath:/data.sql
+spring.datasource.initialization-mode=always
+spring.jpa.hibernate.ddl-auto=update
+```
+&emsp; ![postgresqldb 전환](https://github.com/user-attachments/assets/f393c548-3284-43e2-8f41-1e11d0938d16) <br>
 
 :satellite: **9. ESP32-CAM 통신 테스트** <br>
 
 ***
 ### 5. 안드로이드앱 개발
+:pager: **1. UI 화면 구성하기** <br>
+&emsp; 안드로이드 앱의 UI를 디자인합니다. <br>
+&emsp; 메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼으로 구성합니다. <br>
+&emsp; RC카 설정 화면에서는 전원이 켜져있는 RC카를 탐색하여 고유 ID를 저장하고 관리할 수 있습니다. <br>
+&emsp; ![android ui](https://github.com/user-attachments/assets/d29bb7d1-cd11-4348-b9a9-4658915dd3c8) <br>
+
