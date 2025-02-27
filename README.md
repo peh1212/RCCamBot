@@ -732,8 +732,8 @@ public class RCCarService {
 | 서보모터 제어 | POST | /api/rc/servo | servoId, angle |
 | DC모터 제어 | POST | /api/rc/motor | command(0~4) |
 | 릴레이 스위치 제어 | POST | /api/rc/relay | 0 or 1 |
-| 이미지 저장하기 | POST | /image/upload/{id} | imageData |
-| 이미지 가져오기 | GET | /image/{id} | X |
+| 이미지 저장하기 | POST | /api/rc/image/upload/{id} | imageData |
+| 이미지 가져오기 | GET | /api/rc/image/{id} | X |
 
 ### RCCarController.java
 ```Java
