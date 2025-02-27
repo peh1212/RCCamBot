@@ -702,6 +702,7 @@ public class RCCarService {
 
 :twisted_rightwards_arrows: **6. RestController 구현하기** <br>
 &emsp; 컨트롤러를 구현합니다. <br>
+### RCCarController.java
 ```Java
 @RestController
 @RequestMapping("/api/rc")
@@ -722,11 +723,11 @@ public class RCCarController {
 
     // RC카 등록하기
     @PostMapping("/register")
-    public ResponseEntity<Esp32CamDevice> registerDevice(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> registerDevice(@RequestBody Map<String, String> request) {
         String macAddress = request.get("macAddress");
-        String ipAddress = request.get("ipAddress");
+        String deviceIp = request.get("deviceIp");
         String deviceName = request.get("deviceName");
-        Esp32CamDevice device = rcCarService.registerDevice(macAddress, ipAddress, deviceName);
+        Esp32CamDevice device = rcCarService.registerDevice(macAddress, deviceIp, deviceName);
         return ResponseEntity.ok(device);
     }
 
@@ -795,6 +796,23 @@ public class RCCarController {
 ```
 <br>
 
+:mag_right: **7. H2 DB 연동 및 CRUD 동작 확인하기** <br>
+&emsp; `application.properties`에 H2 DB 관련 설정들을 추가합니다. <br>
+```Java
+spring.datasource.url=jdbc:h2:mem:testdb // h2 db 주소 고정
+spring.h2.console.enabled=true // h2콘솔 활성화
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.hibernate.ddl-auto=update
+```
+&emsp; Talend API Tester로 컨트롤러에서 구현한 엔드포인트에 HTTP 요청들을 보내고, H2 Console로 잘 처리되었는지 확인합니다. <br>
+&emsp; ![h2db 테스트](https://github.com/user-attachments/assets/028480b7-872e-4a78-906b-17d1c2b7e211) <br>
+
+
+:floppy_disk: **8. PostgreSQL DB 전환** <br>
+
+:satellite: **9. ESP32-CAM 통신 테스트** <br>
 
 ***
 ### 5. 안드로이드앱 개발
