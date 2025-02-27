@@ -10,12 +10,15 @@
 &emsp; `2025. 2 ~ 2025. 3` <br><br>
 :books: **기술스택** : <br>
 &emsp; ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white) <br><br>
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Retrofit](https://img.shields.io/badge/Retrofit-00B5A6?style=for-the-badge&logo=retrofit&logoColor=white) <br><br>
 :hammer: **개발도구** : <br>
 &emsp; ![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-00979D?style=for-the-badge&logo=arduino&logoColor=white)
-![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white)
-![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white) <br><br>
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white)
+![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br><br>
 
 :page_with_curl: **목차** : <br>
 &emsp; [1. 시스템 기획](#1-시스템-기획) <br>
@@ -478,6 +481,21 @@ void startCameraServer() {
 
 :blue_book: **2. Entity 정의하기** <br>
 &emsp; DB에 RC카 정보를 저장하기 위한 Entity를 정의합니다. <br>
+#### ESP32-CAM Device Table
+| id | macAddress | deviceName | deviceIp |
+|-------|-------|-------|-------|
+| 1 | MACADDRESS1 | RC CAR 1 | 192.168.0.0 |
+| 2 | MACADDRESS2 | RC CAR 2 | 192.168.0.2 |
+
+#### ESP32-CAM Image Table
+| id | imagePath | createdAt | esp32cam device id |
+|-------|-------|-------|-------|
+| 1 | {image.storage.path} | 2025.02.03.12.50 | 1 |
+| 2 | {image.storage.path} | 2025.02.03.12.51 | 1 |
+| 3 | {image.storage.path} | 2025.02.03.12.56 | 2 |
+| 4 | {image.storage.path} | 2025.02.03.12.57 | 2 |
+| 5 | {image.storage.path} | 2025.02.03.12.58 | 2 |
+
 #### Esp32CamInfo.java
 ```Java
 @Builder
