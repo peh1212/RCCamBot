@@ -13,6 +13,7 @@
 ![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Retrofit](https://img.shields.io/badge/Retrofit-00B5A6?style=for-the-badge&logo=retrofit&logoColor=white) <br><br>
 :hammer: **개발도구** : <br>
@@ -464,8 +465,13 @@ void startCameraServer() {
 &emsp; ![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
 
 :nut_and_bolt: **3. 조립하기** <br>
+&emsp; 1. 프레임을 설계하여 알루미늄 가공업체에 제작을 의뢰합니다. <br>
+&emsp; ![프레임2](https://github.com/user-attachments/assets/075c931a-939c-4e1c-a381-135b272d2536) <br><br>
+&emsp; 2. 2대 조립하기(약 4시간 소요) <br>
+&emsp; ![조립중2](https://github.com/user-attachments/assets/116b6a12-ea75-4f1c-9048-1627006bfa5c) <br><br>
+&emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
 &emsp; ![조립 후 테스트](https://github.com/user-attachments/assets/c1880c53-5f9b-4607-bfc6-78e77f13b42f) <br>
-&emsp; 알루미늄 프레임을 제작하여 2대를 조립한 후 테스트합니다. <br><br>
+<br><br>
 
 ***
 ### 4. 백엔드 개발
