@@ -7,7 +7,7 @@
 &emsp; 차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
 
 :calendar: **프로젝트 기간** : <br>
-&emsp; `2025. 2 ~ 2025. 3` <br><br>
+&emsp; `2025. 2 ~  ` <br><br>
 :books: **기술스택** : <br>
 &emsp; ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 ![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
@@ -68,7 +68,7 @@
 &emsp; `전원 똑딱이 스위치` 1개 <br>
 &emsp; `DC-DC 스텝다운 컨버터(LM2596)` 2개 <br>
 &emsp; `MCU(ESP32-CAM)` 1개 <br>
-&emsp; `ESP32-CAM WiFi 안테나 (3dBi)` 1개 <br>
+&emsp; `ESP32-CAM WiFi 안테나 (3dBi)` 1개 -> `6dBi로 교체` <br>
 &emsp; `팬틸트용 SG90 서보모터` 2개 <br>
 &emsp; `2채널 DC모터 드라이버(DRV8833)` 1개 <br>
 &emsp; `아두이노 바퀴용 DC모터` 4개 <br>
@@ -468,8 +468,9 @@ void startCameraServer() {
 &emsp; 1. 프레임을 설계하여 알루미늄 가공업체에 제작을 의뢰합니다. <br>
 &emsp; ![프레임2](https://github.com/user-attachments/assets/075c931a-939c-4e1c-a381-135b272d2536) <br><br>
 &emsp; 2. 2대 조립하기(약 4시간 소요) <br>
-&emsp; ![조립중2](https://github.com/user-attachments/assets/116b6a12-ea75-4f1c-9048-1627006bfa5c) <br><br>
+&emsp; ![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
 &emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
+&emsp; Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
 &emsp; ![조립 후 테스트](https://github.com/user-attachments/assets/c1880c53-5f9b-4607-bfc6-78e77f13b42f) <br>
 <br><br>
 
