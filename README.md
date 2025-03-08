@@ -7,7 +7,7 @@
 &emsp; 차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
 
 :calendar: **프로젝트 기간** : <br>
-&emsp; `2025. 2 ~  ` <br><br>
+&emsp; `2025. 2 ~ 2025. 3` <br><br>
 :books: **기술스택** : <br>
 &emsp; ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 ![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
@@ -84,8 +84,8 @@
 &emsp; `-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
 &emsp; `-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
 &emsp; `-ESP32-CAM 부팅 시 ESP32-CAM의 ip주소와 MAC주소를 JSON으로 변환하여 스프링부트 서버로 전송합니다.` <br>
-&emsp; `-스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 디코딩하여 이미지로 로컬에 저장합니다.` <br>
-&emsp; `-스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체로 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드로 처리합니다.` <br>
+&emsp; `-스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 이미지로 디코딩하여 로컬에 저장합니다.` <br>
+&emsp; `-스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체로 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드에서 처리합니다.` <br>
 &emsp; `-아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
 
 #### ESP32CAM.ino
