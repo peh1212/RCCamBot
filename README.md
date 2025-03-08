@@ -87,12 +87,19 @@
 
 #### ESP32CAM.ino
 ```C++
-#include "esp_camera.h"
 #include <WiFi.h>
-#include "esp_http_server.h"
+#include "esp_camera.h"
 #include <ESP32Servo.h>
+#include <HTTPClient.h>
+#include <WebServer.h>
+#include <Base64.h>
 
-// 카메라모듈 핀 설정
+// WiFi 정보와 스프링부트 서버 주소 설정
+#define WIFI_SSID "**********"
+#define WIFI_PASSWORD "**********"
+#define SERVER_URL "**********"
+
+// 카메라 모델 정의 및 핀 설정
 #define CAMERA_MODEL_AI_THINKER
 #define PWDN_GPIO_NUM  32
 #define RESET_GPIO_NUM -1
@@ -111,48 +118,58 @@
 #define HREF_GPIO_NUM  23
 #define PCLK_GPIO_NUM  22
 
-// WiFi 설정
-const char* ssid = "**********";
-const char* password = "**********";
-
-httpd_handle_t server = NULL;
-
 // 서보모터 핀 설정
-#define SERVO_PIN1 12
-#define SERVO_PIN2 13
+#define SERVO_PIN_1 12
+#define SERVO_PIN_2 13
 
-Servo servo1; // 서보모터 객체 생성 (1: PAN, 2:TILT)
-Servo servo2;
-
-int currentAngle1 = 90; // 서보모터 초기각도 설정 (0~180)
-int currentAngle2 = 90;
-
-// DC모터 드라이버 핀 설정
+// DC모터 핀 설정
 // (바퀴는 4개이지만 2개인것처럼 제어, 왼쪽 2개, 오른쪽 2개가 같이 움직임)
-#define MOTOR_L1 14
-#define MOTOR_L2 15
-#define MOTOR_R1 2
-#define MOTOR_R2 4
+#define LEFT_MOTOR_FORWARD_PIN 14
+#define LEFT_MOTOR_BACKWARD_PIN 15
+#define RIGHT_MOTOR_FORWARD_PIN 2
+#define RIGHT_MOTOR_BACKWARD_PIN 4
 
 // 릴레이 핀 설정
 #define RELAY_PIN 3
 
-void startCameraServer();
+// 서보모터 객체 생성
+// (1:PAN 2:TILT)
+Servo servo1;
+Servo servo2;
+
+// 웹 서버 객체 생성
+WebServer server(80);
+
+// 서버 엔드포인트 정의
+const char* stream_url = "/stream";
+const char* servo_url = "/servo";
+const char* motor_url = "/motor";
+const char* relay_url = "/relay";
+const char* capture_url = "/capture";
+const char* register_url = "/register";
+const char* image_upload_url = "/image/upload/";
+
+// 함수 선언
+void handleStream(void* parameter);
+void handleServo();
+void handleMotor();
+void handleRelay();
+void handleCapture();
+void sendDeviceInfo();
+void startServer();
 
 
 void setup() {
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-
   // WiFi 연결
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
   Serial.println("WiFi connected");
 
-  // 카메라 설정
+  // 카메라 초기화
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -168,8 +185,8 @@ void setup() {
   config.pin_pclk = PCLK_GPIO_NUM;
   config.pin_vsync = VSYNC_GPIO_NUM;
   config.pin_href = HREF_GPIO_NUM;
-  config.pin_sscb_sda = SIOD_GPIO_NUM;
-  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_sccb_sda = SIOD_GPIO_NUM;
+  config.pin_sccb_scl = SIOC_GPIO_NUM;
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
@@ -178,270 +195,253 @@ void setup() {
   // 카메라 해상도
   // (UXGA: 1600x1200, XGA: 1024x768, SVGA: 800x600, VGA: 640x480, CIF: 400x296, QVGA: 320x240, QQVGA: 160x120)
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_UXGA;
+    config.frame_size = FRAMESIZE_VGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
-    config.frame_size = FRAMESIZE_SVGA;
+    config.frame_size = FRAMESIZE_QVGA;
     config.jpeg_quality = 12;
     config.fb_count = 1;
   }
 
+  // 카메라 초기화
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
-  startCameraServer();
+  // 서보모터 초기화
+  servo1.attach(SERVO_PIN_1);
+  servo2.attach(SERVO_PIN_2);
 
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
-
-  // 서보모터 설정
-  servo1.attach(SERVO_PIN1);
-  servo2.attach(SERVO_PIN2);
-
-  servo1.write(currentAngle1);
-  servo2.write(currentAngle2);
-  
-  // DC모터 드라이버 설정
-  pinMode(MOTOR_L1, OUTPUT);
-  pinMode(MOTOR_L2, OUTPUT);
-  pinMode(MOTOR_R1, OUTPUT);
-  pinMode(MOTOR_R2, OUTPUT);
-
-  // DC모터 초기상태 (정지)
-  digitalWrite(MOTOR_L1, LOW);
-  digitalWrite(MOTOR_L2, LOW);
-  digitalWrite(MOTOR_R1, LOW);
-  digitalWrite(MOTOR_R2, LOW);
-
-  // 릴레이 핀 설정 (초기상태 OFF)
+  // DC모터 설정
+  pinMode(LEFT_MOTOR_FORWARD_PIN, OUTPUT);
+  pinMode(LEFT_MOTOR_BACKWARD_PIN, OUTPUT);
+  pinMode(RIGHT_MOTOR_FORWARD_PIN, OUTPUT);
+  pinMode(RIGHT_MOTOR_BACKWARD_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
+  // DC모터 초기상태 정지
+  digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
+  digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+  digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
+  digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+  // 릴레이 초기상태 OFF
   digitalWrite(RELAY_PIN, LOW);
-}
 
+  // 서버로 디바이스 정보 전송
+  sendDeviceInfo();
+
+  // HTTP 서버 시작
+  startServer();
+}
 
 void loop() {
-  // 여기서는 아무것도 하지 않는다.
-  // 웹서버에 의해서 동작된다.
-  delay(10000);
+  server.handleClient();
 }
 
 
-// HTTP 요청을 처리하는 핸들러들
+// MJPEG 스트리밍 함수
+void handleStream(void* parameter) {
+  WebServer* server = (WebServer*) parameter;
+  WiFiClient client = server->client();
+  client.setTimeout(5); // 클라이언트 응답 대기시간 5초
 
-// 카메라 웹 스트리밍 핸들러
-static esp_err_t stream_handler(httpd_req_t *req){
+  // 응답설정
   camera_fb_t * fb = NULL;
-  esp_err_t res = ESP_OK;
-  size_t _jpg_buf_len = 0;
-  uint8_t * _jpg_buf = NULL;
-  char * part_buf[64];
+  String boundary = "frame";
+  String response = "HTTP/1.1 200 OK\r\n";
+  response += "Content-Type: multipart/x-mixed-replace; boundary=" + boundary + "\r\n\r\n";
+  client.print(response);
 
-  res = httpd_resp_set_type(req, "multipart/x-mixed-replace;boundary=frame");
-  if(res != ESP_OK){
-    return res;
-  }
-
-  while(true){
+  // 스트리밍 루프
+  while (true) {
     fb = esp_camera_fb_get();
     if (!fb) {
       Serial.println("Camera capture failed");
-      res = ESP_FAIL;
-    } else {
-      if(fb->width > 400){
-        if(fb->format != PIXFORMAT_JPEG){
-          bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
-          esp_camera_fb_return(fb);
-          fb = NULL;
-          if(!jpeg_converted){
-            Serial.println("JPEG compression failed");
-            res = ESP_FAIL;
-          }
-        } else {
-          _jpg_buf_len = fb->len;
-          _jpg_buf = fb->buf;
-        }
-      }
+      return;
     }
-    if(res == ESP_OK){
-      size_t hlen = snprintf((char *)part_buf, 64, "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", _jpg_buf_len);
-      res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
-    }
-    if(res == ESP_OK){
-      res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-    }
-    if(res == ESP_OK){
-      res = httpd_resp_send_chunk(req, "\r\n--frame\r\n", 14);
-    }
-    if(fb){
-      esp_camera_fb_return(fb);
-      fb = NULL;
-      _jpg_buf = NULL;
-    } else if(_jpg_buf){
-      free(_jpg_buf);
-      _jpg_buf = NULL;
-    }
-    if(res != ESP_OK){
+
+    response = "--" + boundary + "\r\n";
+    response += "Content-Type: image/jpeg\r\n";
+    response += "Content-Length: " + String(fb->len) + "\r\n\r\n";
+    client.print(response);
+    client.write((const uint8_t *)fb->buf, fb->len);
+    client.print("\r\n");
+    esp_camera_fb_return(fb);
+
+    // 클라이언트 연결 해제시 메모리 누수 방지
+    if (!client.connected()) {
       break;
     }
   }
-  return res;
 }
 
-// 서보모터 제어 핸들러
-static esp_err_t servo_handler(httpd_req_t *req){
-  char buf[100];
-  int ret = httpd_req_recv(req, buf, req->content_len);
-  if (ret <= 0) {
-    return ESP_FAIL;
+// 서보모터 제어 함수
+void handleServo() {
+  if (server.hasArg("plain") == false) {
+    server.send(400, "text/plain", "Body not received");
+    return;
   }
-
-  buf[ret] = '\0';
-  int servo_num = 0;
-  int direction = 0;
-  sscanf(buf, "%d %d", &servo_num, &direction);
-
-  if (servo_num == 1) {
-    currentAngle1 += direction;
-    currentAngle1 = constrain(currentAngle1, 0, 180); // 각도제한 0~180
-    servo1.write(currentAngle1);
-  } else if (servo_num == 2) {
-    currentAngle2 += direction;
-    currentAngle2 = constrain(currentAngle2, 0, 180); // 각도제한 0~180
-    servo2.write(currentAngle2);
-  } else {
-    return ESP_FAIL;
+  String body = server.arg("plain");
+  int servoNum, angle;
+  sscanf(body.c_str(), "%d %d", &servoNum, &angle);
+  if (servoNum == 1) {
+    servo1.write(angle);
+  } else if (servoNum == 2) {
+    servo2.write(angle);
   }
-
-  httpd_resp_send(req, "Servo control OK", HTTPD_RESP_USE_STRLEN);
-  return ESP_OK;
+  server.send(200, "text/plain", "Servo moved");
 }
 
-// DC모터 제어함수
-void motorControl(int command) {
-  switch (command) {
+// DC모터 제어 함수
+void handleMotor() {
+  if (server.hasArg("plain") == false) {
+    server.send(400, "text/plain", "Body not received");
+    return;
+  }
+  String body = server.arg("plain");
+  int motorState;
+  sscanf(body.c_str(), "%d", &motorState);
+
+  switch (motorState) {
     case 0: // 정지
-      digitalWrite(MOTOR_L1, LOW);
-      digitalWrite(MOTOR_L2, LOW);
-      digitalWrite(MOTOR_R1, LOW);
-      digitalWrite(MOTOR_R2, LOW);
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
       break;
     case 1: // 전진
-      digitalWrite(MOTOR_L1, HIGH);
-      digitalWrite(MOTOR_L2, LOW);
-      digitalWrite(MOTOR_R1, HIGH);
-      digitalWrite(MOTOR_R2, LOW);
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, HIGH);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, HIGH);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
       break;
     case 2: // 후진
-      digitalWrite(MOTOR_L1, LOW);
-      digitalWrite(MOTOR_L2, HIGH);
-      digitalWrite(MOTOR_R1, LOW);
-      digitalWrite(MOTOR_R2, HIGH);
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, HIGH);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, HIGH);
       break;
     case 3: // 좌회전
-      digitalWrite(MOTOR_L1, LOW);
-      digitalWrite(MOTOR_L2, LOW);
-      digitalWrite(MOTOR_R1, HIGH);
-      digitalWrite(MOTOR_R2, LOW);
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, HIGH);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
       break;
     case 4: // 우회전
-      digitalWrite(MOTOR_L1, HIGH);
-      digitalWrite(MOTOR_L2, LOW);
-      digitalWrite(MOTOR_R1, LOW);
-      digitalWrite(MOTOR_R2, LOW);
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, HIGH);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      break;
+    default: // 정지
+      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
+      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
       break;
   }
+
+  server.send(200, "text/plain", "Motor state updated");
 }
 
-// DC모터 제어 핸들러
-static esp_err_t motor_handler(httpd_req_t *req) {
-  char buf[10];
-  int ret = httpd_req_recv(req, buf, req->content_len);
-  if (ret <= 0) return ESP_FAIL;
-  buf[ret] = '\0';
-  int command = atoi(buf);
-  motorControl(command);
-  httpd_resp_send(req, "Motor control OK", HTTPD_RESP_USE_STRLEN);
-  return ESP_OK;
-}
-
-// 릴레이 제어 핸들러
-static esp_err_t relay_handler(httpd_req_t *req) {
-  char buf[10];
-  int ret = httpd_req_recv(req, buf, req->content_len);
-  if (ret <= 0) return ESP_FAIL;
-  buf[ret] = '\0';
-  int state = atoi(buf);
-  digitalWrite(RELAY_PIN, state ? HIGH : LOW);
-  httpd_resp_send(req, "Relay control OK", HTTPD_RESP_USE_STRLEN);
-  return ESP_OK;
-}
-
-// 카메라 서버 시작 함수
-void startCameraServer() {
-  // 웹 서버 설정 기본값 초기화
-  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-
-  // 카메라 웹 스트리밍 제어 URI 설정
-  httpd_uri_t index_uri = {
-    .uri       = "/",
-    .method    = HTTP_GET,
-    .handler   = stream_handler,
-    .user_ctx  = NULL
-  };
-
-  // 서보모터 제어 URI 설정
-  httpd_uri_t servo_uri = {
-    .uri       = "/servo",
-    .method    = HTTP_POST,
-    .handler   = servo_handler,
-    .user_ctx  = NULL
-  };
-
-  // DC모터 제어 URI 설정
-  httpd_uri_t motor_uri = {
-    .uri = "/motor",
-    .method = HTTP_POST,
-    .handler = motor_handler,
-    .user_ctx = NULL
-  };
-
-  // 릴레이 제어 URI 설정
-  httpd_uri_t relay_uri = {
-    .uri = "/relay",
-    .method = HTTP_POST,
-    .handler = relay_handler,
-    .user_ctx = NULL
-  };
-
-  // HTTP 서버 시작
-  if (httpd_start(&server, &config) == ESP_OK) {
-    // URI 핸들러 등록
-    httpd_register_uri_handler(server, &index_uri);
-    httpd_register_uri_handler(server, &servo_uri);
-    httpd_register_uri_handler(server, &motor_uri);
-    httpd_register_uri_handler(server, &relay_uri);
+// 릴레이 제어 함수
+void handleRelay() {
+  if (server.hasArg("plain") == false) {
+    server.send(400, "text/plain", "Body not received");
+    return;
   }
+  String body = server.arg("plain");
+  int relayState;
+  sscanf(body.c_str(), "%d", &relayState);
+
+  if (relayState == 1) {
+    digitalWrite(RELAY_PIN, HIGH);
+  } else {
+    digitalWrite(RELAY_PIN, LOW);
+  }
+
+  server.send(200, "text/plain", "Relay state updated");
 }
 
-// HTTP 요청
-// Method : POST
-// Header : Content-Type : text/plain
-// 1. 서보모터 제어
-// 엔드포인트 : http://(ESP32-CAM IP주소)/servo
-// Body : 서보모터 번호와 변화량 (예: 1 -10 -> 1번 서보모터 각도 -10도 증가)
-// 2. DC모터 제어
-// 엔드포인트 : http://(ESP32-CAM IP주소)/motor
-// Body : 0~4 (0: 정지, 1: 전진, 2: 후진, 3: 좌회전, 4: 우회전)
-// 3. 릴레이 제어
-// 엔드포인트 : http://(ESP32-CAM IP주소)/relay
-// Body : 0~1 (0: OFF, 1: ON)
+// 캡쳐 함수
+void handleCapture() {
+  camera_fb_t * fb = esp_camera_fb_get();
+  if (!fb) {
+    server.send(500, "text/plain", "Camera capture failed");
+    return;
+  }
+
+  String base64Image = base64::encode(fb->buf, fb->len);
+  esp_camera_fb_return(fb);
+
+  HTTPClient http;
+  String url = String(SERVER_URL) + capture_url;
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  String json = "{\"image\":\"" + base64Image + "\"}";
+  int httpResponseCode = http.POST(json);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    server.send(200, "text/plain", response);
+  } else {
+    server.send(500, "text/plain", "Image upload failed");
+  }
+
+  http.end();
+}
+
+// 디바이스 정보 전송 함수
+void sendDeviceInfo() {
+  HTTPClient http;
+  String url = String(SERVER_URL) + register_url;
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+
+  String macAddress = WiFi.macAddress();
+  String ipAddress = WiFi.localIP().toString();
+  String deviceName = "MyRCCar";
+
+  String json = "{\"macAddress\":\"" + macAddress + "\",\"deviceIp\":\"" + ipAddress + "\",\"deviceName\":\"" + deviceName + "\"}";
+
+  int httpResponseCode = http.POST(json);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(httpResponseCode);
+    Serial.println(response);
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    Serial.println(http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end();
+}
+
+// 엔드포인트 등록
+void startServer() {
+  server.on(stream_url, HTTP_GET, []() {
+    xTaskCreatePinnedToCore(handleStream, "handleStream", 8192, &server, 1, NULL, 0);
+  }); // 스트리밍은 FreeRTOS 멀티태스킹으로 실행하여 스트리밍중에도 다른 HTTP 요청을 처리할 수 있도록 구현
+  server.on(servo_url, HTTP_POST, handleServo); // 서보모터 엔드포인트 등록
+  server.on(motor_url, HTTP_POST, handleMotor); // DC모터 엔드포인트 등록
+  server.on(relay_url, HTTP_POST, handleRelay); // 릴레이 엔드포인트 등록
+  server.on(capture_url, HTTP_GET, handleCapture); // 캡쳐함수 엔드포인트 등록
+  server.begin();
+  Serial.println("HTTP server started");
+}
 ```
-<br>
+
+| 기능 | HTTP 요청 | Headers | 엔드포인트 | Body |  |
+|-------|-------|-------|-------|-------|-------|
+| 스트리밍 | GET |  | /stream |  |  |
+| 서보모터 제어 | POST | Content-Type : application/json | /servo | { "servoNum":1, "angle":10 } | 제어할 서보모터 번호(1, 2), 이동할 각도 |
+| DC모터 제어 | POST | Content-Type : application/json | /motor | { "motorState":1 } | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
+| 릴레이 제어 | POST | Content-Type : application/json | /relay | { "relayState":1 } | 0:Off, 1:On |
+
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
 <br>
