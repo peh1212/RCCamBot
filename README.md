@@ -474,8 +474,7 @@ void startServer() {
 &emsp; ![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
 &emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
 &emsp; Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
-&emsp; ![조립테스트 폰카메라 (2)](https://github.com/user-attachments/assets/601440ae-cf17-4949-95e9-8a79561fae14) <br>
-&emsp; ![조립테스트 ESP카메라 (2)](https://github.com/user-attachments/assets/497aea1c-11d7-4c53-a21a-f87b33df6708) <br>
+&emsp; ![조립테스트 영상 2개 합친것 용량압축](https://github.com/user-attachments/assets/b7a05f9c-ae1a-4dd6-bbd7-6c5992a32da3) <br>
 <br><br>
 
 ***
