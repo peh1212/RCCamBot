@@ -126,7 +126,7 @@
 #define SERVO_PIN_2 13
 
 // DC모터 핀 설정
-// (바퀴는 4개이지만 2개인것처럼 제어, 왼쪽 2개, 오른쪽 2개가 같이 움직임)
+// 바퀴는 4개이지만 2개인것처럼 제어, 왼쪽 2개, 오른쪽 2개가 같이 움직임
 #define LEFT_MOTOR_FORWARD_PIN 14
 #define LEFT_MOTOR_BACKWARD_PIN 15
 #define RIGHT_MOTOR_FORWARD_PIN 2
@@ -136,9 +136,14 @@
 #define RELAY_PIN 3
 
 // 서보모터 객체 생성
-// (1:PAN 2:TILT)
+// 1:PAN 2:TILT
 Servo servo1;
 Servo servo2;
+
+// 서보모터의 현재 각도를 저장할 변수
+// 0~180도, 초기위치 90도
+int currentAngle1 = 90;
+int currentAngle2 = 90;
 
 // 웹 서버 객체 생성
 WebServer server(80);
@@ -172,7 +177,7 @@ void setup() {
   }
   Serial.println("WiFi connected");
 
-  // 카메라 초기화
+  // 카메라 설정
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -214,21 +219,29 @@ void setup() {
     return;
   }
 
-  // 서보모터 초기화
+  // 서보모터 설정
   servo1.attach(SERVO_PIN_1);
   servo2.attach(SERVO_PIN_2);
-
+  
   // DC모터 설정
   pinMode(LEFT_MOTOR_FORWARD_PIN, OUTPUT);
   pinMode(LEFT_MOTOR_BACKWARD_PIN, OUTPUT);
   pinMode(RIGHT_MOTOR_FORWARD_PIN, OUTPUT);
   pinMode(RIGHT_MOTOR_BACKWARD_PIN, OUTPUT);
+
+  // 릴레이 설정
   pinMode(RELAY_PIN, OUTPUT);
+
+  // 서보모터 현재위치 초기화
+  servo1.write(currentAngle1);
+  servo2.write(currentAngle2);
+
   // DC모터 초기상태 정지
   digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
   digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
   digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
   digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+
   // 릴레이 초기상태 OFF
   digitalWrite(RELAY_PIN, LOW);
 
@@ -287,13 +300,23 @@ void handleServo() {
     return;
   }
   String body = server.arg("plain");
-  int servoNum, angle;
-  sscanf(body.c_str(), "%d %d", &servoNum, &angle);
+  int servoNum, angleIncrement;
+  sscanf(body.c_str(), "%d %d", &servoNum, &angleIncrement);
+
   if (servoNum == 1) {
-    servo1.write(angle);
+    currentAngle1 += angleIncrement;
+    if (currentAngle1 < 0) currentAngle1 = 0;
+    if (currentAngle1 > 180) currentAngle1 = 180;
+    servo1.write(currentAngle1);
+    Serial.printf("Servo %d moved to %d degrees\n", servoNum, currentAngle1);
   } else if (servoNum == 2) {
-    servo2.write(angle);
+    currentAngle2 += angleIncrement;
+    if (currentAngle2 < 0) currentAngle2 = 0;
+    if (currentAngle2 > 180) currentAngle2 = 180;
+    servo2.write(currentAngle2);
+    Serial.printf("Servo %d moved to %d degrees\n", servoNum, currentAngle2);
   }
+
   server.send(200, "text/plain", "Servo moved");
 }
 
@@ -441,9 +464,9 @@ void startServer() {
 | 기능 | HTTP 요청 | Headers | 엔드포인트 | Body |  |
 |-------|-------|-------|-------|-------|-------|
 | 스트리밍 | GET |  | /stream |  |  |
-| 서보모터 제어 | POST | Content-Type : application/json | /servo | { "servoNum":1, "angle":10 } | 제어할 서보모터 번호(1, 2), 이동할 각도 |
-| DC모터 제어 | POST | Content-Type : application/json | /motor | { "motorState":1 } | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
-| 릴레이 제어 | POST | Content-Type : application/json | /relay | { "relayState":1 } | 0:Off, 1:On |
+| 서보모터 제어 | POST | Content-Type : text/plain | /servo | (서보모터 번호) (서보모터 각도 변화량) | 제어할 서보모터 번호(1, 2), 이동할 각도 |
+| DC모터 제어 | POST | Content-Type : text/plain | /motor | 0~4 | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
+| 릴레이 제어 | POST | Content-Type : text/plain | /relay | 0~1 | 0:Off, 1:On |
 
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
