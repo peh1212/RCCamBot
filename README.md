@@ -451,7 +451,6 @@ void startServer() {
 &emsp; :white_check_mark: **ESP32-CAM에 핀을 연결하고 테스트하기** <br>
 &emsp; ![esp32cam 업로드보드](https://github.com/user-attachments/assets/1ae8f680-7176-4a1e-9641-5206aaf35128) <br>
 &emsp; ESP32-CAM에 업로드보드를 연결한 상태에서는 핀을 꽂을 수 없게 되어있습니다. <br>
-&emsp; (업로드 모드와 실행 모드에서 일부 핀이 다르게 동작하기 때문에 이렇게 만들었다고 합니다) <br>
 &emsp; 하지만 업로드보드를 빼는 순간 전원이 끊기기 때문에 ESP32-CAM의 전원이 꺼지게 됩니다. <br>
 &emsp; ESP32는 DHCP(Dynamic Host Configuration Protocol)를 사용하여 전원을 켰을 때 라우터에서 IP 주소를 자동으로 할당해줍니다. <br>
 &emsp; 따라서 핀을 연결하기 위해 업로드보드를 빼고 외부 전원을 연결하면 ESP32-CAM이 재부팅되면서 IP 주소가 달라지고, 시리얼모니터와도 연결이 끊겨서 IP 주소를 알 수 없게 됩니다. <br><br>
