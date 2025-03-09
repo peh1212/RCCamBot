@@ -155,7 +155,7 @@ const char* motor_url = "/motor";
 const char* relay_url = "/relay";
 const char* capture_url = "/capture";
 const char* register_url = "/register";
-const char* image_upload_url = "/image/upload/";
+const char* image_upload_url = "/image/upload";
 
 // 함수 선언
 void handleStream(void* parameter);
@@ -403,7 +403,7 @@ void handleCapture() {
   esp_camera_fb_return(fb);
 
   HTTPClient http;
-  String url = String(SERVER_URL) + capture_url;
+  String url = String(SERVER_URL) + image_upload_url;
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
   String json = "{\"image\":\"" + base64Image + "\"}";
