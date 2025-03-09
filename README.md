@@ -406,7 +406,10 @@ void handleCapture() {
   String url = String(SERVER_URL) + image_upload_url;
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
-  String json = "{\"image\":\"" + base64Image + "\"}";
+
+  String macAddress = WiFi.macAddress();
+
+  String json = "{\"image\":\"" + base64Image + "\",\"macAddress\":\"" + macAddress + "\"}";
   int httpResponseCode = http.POST(json);
 
   if (httpResponseCode > 0) {
@@ -464,7 +467,7 @@ void startServer() {
 | 기능 | HTTP 요청 | Headers | 엔드포인트 | Body |  |
 |-------|-------|-------|-------|-------|-------|
 | 스트리밍 | GET |  | /stream |  |  |
-| 이미지를 캡쳐하여 base64로 스프링부트서버에 전송 | GET |  | /capture |  |  |
+| 이미지를 캡쳐하여 base64로 변환하여 MAC주소와 함께 스프링부트서버에 전송 | GET |  | /capture |  |  |
 | 서보모터 제어 | POST | Content-Type : text/plain | /servo | ex) 1 5  (1번 서보모터 각도 5도 이동) | (제어할 서보모터 번호) (서보모터 각도 변화량) |
 | DC모터 제어 | POST | Content-Type : text/plain | /motor | 0~4 | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
 | 릴레이 제어 | POST | Content-Type : text/plain | /relay | 0~1 | 0:Off, 1:On |
