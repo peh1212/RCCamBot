@@ -749,7 +749,7 @@ public class RCCarService {
 &emsp; 컨트롤러를 구현합니다. <br>
 | 기능 | HTTP 메서드 | URL | 요청 데이터 |
 |-------|-------|-------|-------|
-| id로 장치 조회하기 | GET | /api/rc/{id} | X |
+| id로 장치 조회하기 | GET | /api/rc/device/{id} | X |
 | RC카 등록하기 | POST | /api/rc/register | macAddress, ipAddress, deviceName |
 | 전체 RC카 조회하기 | GET | /api/rc/devices | X |
 | RC카 수정하기 | PATCH | /api/rc/device/{id} | macAddress, ipAddress, deviceName |
