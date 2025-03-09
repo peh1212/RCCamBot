@@ -884,6 +884,8 @@ spring.jpa.hibernate.ddl-auto=update
 &emsp; ![postgresqldb 전환](https://github.com/user-attachments/assets/f393c548-3284-43e2-8f41-1e11d0938d16) <br>
 
 :satellite: **9. ESP32-CAM 통신 테스트** <br>
+&emsp; RC카 전원 On시(ESP32-CAM 부팅시) DB에 디바이스 정보가 등록되는지 확인합니다. <br>
+&emsp; ![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br>
 
 ***
 ### 5. 안드로이드앱 개발
