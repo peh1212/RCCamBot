@@ -470,7 +470,7 @@ void startServer() {
 
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
-&emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
+&emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM의 ip주소에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
 
 &emsp; 1. 카메라 웹 스트리밍 테스트 <br>
 &emsp; ![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
