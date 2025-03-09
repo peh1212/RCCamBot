@@ -578,12 +578,15 @@ class Esp32CamImage { // ESP32-CAM이 찍은 사진
 :books: **3. Repository 인터페이스 구현하기** <br>
 &emsp; Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
 &emsp; Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 조회하는 쿼리 메서드를 추가합니다. <br>
+&emsp; Esp32CamImageRepo에는 몇 개의 이미지가 저장되어 있는지 카운트하는 메서드를 추가합니다. <br>
 #### Esp32CamInfo.java
 ```Java
 interface Esp32CamDeviceRepo extends JpaRepository<Esp32CamDevice, Long> {
     Optional<Esp32CamDevice> findByMacAddress(String macAddress);
 }
+
 interface Esp32CamImageRepo extends JpaRepository<Esp32CamImage, Long> {
+    long countByEsp32CamDevice(Esp32CamDevice device);
 }
 ```
 <br>
@@ -714,37 +717,49 @@ public class RCCarService {
         return state == 1 ? "Relay ON" : "Relay OFF";
     }
 
-    // RC카가 찍은 사진 저장하기
+    // RC카가 찍은 사진 저장하기 (MAC 주소 기반)
     @Transactional
-    public Esp32CamImage saveImage(Long deviceId, String imageData) {
-        Esp32CamDevice device = deviceRepo.findById(deviceId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 장치가 없습니다."));
+    public String saveImage(String macAddress, String base64Image) {
+        // MAC 주소로 RC카 조회
+        Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("해당 MAC 주소의 장치가 없습니다: " + macAddress));
 
-        String fileName = UUID.randomUUID() + ".jpg";
+        // 기존 저장된 이미지 개수 조회 (일련번호 부여)
+        long imageCount = imageRepo.countByEsp32CamDevice(device);
+
+        // 파일명: "1_MyRCCar_1.jpg" (ID + 이름 + 순번)
+        String fileName = String.format("%d_%s_%d.jpg", device.getId(), device.getDeviceName(), imageCount + 1);
         String filePath = Paths.get(storagePath, fileName).toString();
 
-        Path sourcePath = Path.of(imageData);
-        Path destinationPath = Path.of(filePath);
-
+        // Base64 디코딩 후 이미지 저장
         try {
-            Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+            Files.write(Paths.get(filePath), imageBytes);
         } catch (IOException e) {
             throw new RuntimeException("이미지 저장 실패", e);
         }
 
+        // 이미지 정보 DB에 저장
         Esp32CamImage image = Esp32CamImage.builder()
                 .imagePath(filePath)
                 .esp32CamDevice(device)
                 .build();
 
-        return imageRepo.save(image);
+        imageRepo.save(image);
+        return filePath;
     }
 
-    // RC카가 찍은 사진 조회하기
-    public Resource getImageById(Long imageId) {
-        Esp32CamImage image = imageRepo.findById(imageId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 이미지가 없습니다."));
-        return new FileSystemResource(new File(image.getImagePath()));
+    // 모든 이미지 조회
+    public List<Map<String, String>> getAllImages() {
+        List<Esp32CamImage> images = imageRepo.findAll();
+
+        return images.stream().map(image -> {
+            Map<String, String> imageData = new HashMap<>();
+            imageData.put("id", String.valueOf(image.getId()));
+            imageData.put("imagePath", image.getImagePath());
+            imageData.put("deviceName", image.getEsp32CamDevice().getDeviceName());
+            return imageData;
+        }).collect(Collectors.toList());
     }
 }
 ```
@@ -759,10 +774,10 @@ public class RCCarService {
 | RC카 수정하기 | PATCH | /api/rc/device/{id} | macAddress, ipAddress, deviceName |
 | RC카 삭제하기 | DELETE | /api/rc/device/{id} | X |
 | 서보모터 제어 | POST | /api/rc/servo | servoId, angle |
-| DC모터 제어 | POST | /api/rc/motor | command(0~4) |
-| 릴레이 스위치 제어 | POST | /api/rc/relay | 0 or 1 |
-| 이미지 저장하기 | POST | /api/rc/image/upload/{id} | imageData |
-| 이미지 가져오기 | GET | /api/rc/image/{id} | X |
+| DC모터 제어 | POST | /api/rc/motor | 0~4 |
+| 릴레이 스위치 제어 | POST | /api/rc/relay | 0~1 |
+| 이미지 저장하기 | POST | /api/rc/image/upload | imageData |
+| 이미지 가져오기 | GET | /api/rc/image | X |
 
 ### RCCarController.java
 ```Java
@@ -812,7 +827,6 @@ public class RCCarController {
         return ResponseEntity.ok(updatedDevice);
     }
 
-
     // RC카 삭제하기
     @DeleteMapping("/device/{id}")
     public ResponseEntity<String> deleteDevice(@PathVariable Long id) {
@@ -843,19 +857,24 @@ public class RCCarController {
     }
 
     // 이미지 저장하기
-    @PostMapping("/image/upload/{id}")
-    public ResponseEntity<String> uploadImage(@PathVariable Long id, @RequestBody String imageData) {
-        Esp32CamImage savedImage = rcCarService.saveImage(id, imageData);
-        return ResponseEntity.ok("이미지 저장 완료: " + savedImage.getImagePath());
+    @PostMapping("/image/upload")
+    public ResponseEntity<String> uploadImage(@RequestBody Map<String, String> requestData) {
+        String macAddress = requestData.get("macAddress");
+        String base64Image = requestData.get("image");
+
+        if (macAddress == null || base64Image == null) {
+            return ResponseEntity.badRequest().body("MAC 주소 또는 이미지 데이터가 누락되었습니다.");
+        }
+
+        String savedFilePath = rcCarService.saveImage(macAddress, base64Image);
+        return ResponseEntity.ok("이미지 저장 완료: " + savedFilePath);
     }
 
-    // 이미지 가져오기
-    @GetMapping("/image/{id}")
-    public ResponseEntity<Resource> getImage(@PathVariable Long id) {
-        Resource imageResource = rcCarService.getImageById(id);
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(imageResource);
+    // 모든 이미지 가져오기
+    @GetMapping("/image")
+    public ResponseEntity<List<Map<String, String>>> getAllImages() {
+        List<Map<String, String>> images = rcCarService.getAllImages();
+        return ResponseEntity.ok(images);
     }
 }
 ```
@@ -891,7 +910,12 @@ spring.jpa.hibernate.ddl-auto=update
 &emsp; RC카 전원 On시(ESP32-CAM 부팅시) DB에 디바이스 정보가 등록되는지 확인합니다. <br>
 &emsp; `MAC주소는 고유하기 때문에 이후에 재부팅시 라우터에서 다른 ip주소를 할당받아도 ip주소만 새로 갱신됩니다.` <br>
 &emsp; `RC카 이름은 안드로이드 앱에서 사용자가 설정하여 저장할 수 있습니다.` <br>
-&emsp; ![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br>
+&emsp; ![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br><br>
+&emsp; RC카 2대 모두 등록한 후 사진을 찍고 로컬에 잘 저장되는지 확인합니다. <br>
+&emsp; ![2대 등록](https://github.com/user-attachments/assets/1506fccd-5dc2-4464-8342-f3b601c9c0a5) <br>
+&emsp; ![2대 사진찍기 테스트](https://github.com/user-attachments/assets/e7f08fa1-cac4-476a-a995-97f57c8115c5) <br>
+&emsp; ![이미지저장테스트](https://github.com/user-attachments/assets/d670dcb8-43a1-4301-bf6b-26d10e787ef4) <br><br>
+
 
 ***
 ### 5. 안드로이드앱 개발
