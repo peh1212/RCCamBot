@@ -470,14 +470,6 @@ void startServer() {
 
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
-<br>
-&emsp; :white_check_mark: **ESP32-CAM에 핀을 연결하고 테스트하기** <br>
-&emsp; ![esp32cam 업로드보드](https://github.com/user-attachments/assets/1ae8f680-7176-4a1e-9641-5206aaf35128) <br>
-&emsp; ESP32-CAM에 업로드보드를 연결한 상태에서는 핀을 꽂을 수 없게 되어있습니다. <br>
-&emsp; 하지만 업로드보드를 빼는 순간 전원이 끊기기 때문에 ESP32-CAM의 전원이 꺼지게 됩니다. <br>
-&emsp; ESP32는 DHCP(Dynamic Host Configuration Protocol)를 사용하여 전원을 켰을 때 라우터에서 IP 주소를 자동으로 할당해줍니다. <br>
-&emsp; 따라서 핀을 연결하기 위해 업로드보드를 빼고 외부 전원을 연결하면 ESP32-CAM이 재부팅되면서 IP 주소가 달라지고, 시리얼모니터와도 연결이 끊겨서 IP 주소를 알 수 없게 됩니다. <br><br>
-&emsp; 고정 IP를 설정하여 전원을 껐다 켜도 동일한 IP 주소를 유지하도록 하는 방법도 많이 사용되지만, ESP32-CAM이 부팅될 때 자신의 IP 주소를 스프링부트 서버로 전송하는 방식으로 구현할 것이기 때문에 동적 IP 주소를 그대로 사용하고 ip스캐너로 ip주소를 찾아내서 테스트를 진행합니다. <br>
 &emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
 
 &emsp; 1. 카메라 웹 스트리밍 테스트 <br>
@@ -496,7 +488,75 @@ void startServer() {
 &emsp; ![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
 &emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
 &emsp; Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
-&emsp; (왼쪽 : 핸드폰 카메라 화면, 오른쪽 : RC카 카메라 화면) <br>
+&emsp; (왼쪽 : 핸드폰으로 촬영한void sendDeviceInfo() {
+  HTTPClient http;
+  String url = String(SERVER_URL) + register_url;
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+
+  String macAddress = WiFi.macAddress();
+  String ipAddress = WiFi.localIP().toString();
+  String deviceName = "MyRCCar";
+
+  String json = "{\"macAddress\":\"" + macAddress + "\",\"deviceIp\":\"" + ipAddress + "\",\"deviceName\":\"" + deviceName + "\"}";
+
+  int httpResponseCode = http.POST(json);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(httpResponseCode);
+    Serial.println(response);
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    Serial.println(http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end();
+}
+
+// 엔드포인트 등록
+void startServer() {
+  server.on(stream_url, HTTP_GET, []() {
+    xTaskCreatePinnedToCore(handleStream, "handleStream", 8192, &server, 1, NULL, 0);
+  }); // 스트리밍은 FreeRTOS 멀티태스킹으로 실행하여 스트리밍중에도 다른 HTTP 요청을 처리할 수 있도록 구현
+  server.on(servo_url, HTTP_POST, handleServo); // 서보모터 엔드포인트 등록
+  server.on(motor_url, HTTP_POST, handleMotor); // DC모터 엔드포인트 등록
+  server.on(relay_url, HTTP_POST, handleRelay); // 릴레이 엔드포인트 등록
+  server.on(capture_url, HTTP_GET, handleCapture); // 캡쳐함수 엔드포인트 등록
+  server.begin();
+  Serial.println("HTTP server started");
+}
+```
+
+| 기능 | HTTP 요청 | Headers | 엔드포인트 | Body |  |
+|-------|-------|-------|-------|-------|-------|
+| 스트리밍 | GET |  | /stream |  |  |
+| 서보모터 제어 | POST | Content-Type : text/plain | /servo | (서보모터 번호) (서보모터 각도 변화량) | 제어할 서보모터 번호(1, 2), 이동할 각도 |
+| DC모터 제어 | POST | Content-Type : text/plain | /motor | 0~4 | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
+| 릴레이 제어 | POST | Content-Type : text/plain | /relay | 0~1 | 0:Off, 1:On |
+
+
+:bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
+&emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
+
+&emsp; 1. 카메라 웹 스트리밍 테스트 <br>
+&emsp; ![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
+&emsp; 2. 서보모터 제어 테스트 <br>
+&emsp; ![servotest](https://github.com/user-attachments/assets/59318f70-2557-4b74-91ca-4afb1a7bbb75) <br><br>
+&emsp; 3. DC모터 제어 테스트 <br>
+&emsp; ![dcmotortest](https://github.com/user-attachments/assets/92a1e8cf-5550-4d74-b90c-69e64474db42) <br><br>
+&emsp; 4. 릴레이 제어 테스트 <br>
+&emsp; ![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
+
+:nut_and_bolt: **3. 조립하기** <br>
+&emsp; 1. 프레임을 설계하여 알루미늄 가공업체에 제작을 의뢰합니다. <br>
+&emsp; ![프레임2](https://github.com/user-attachments/assets/075c931a-939c-4e1c-a381-135b272d2536) <br><br>
+&emsp; 2. 2대 조립하기(약 4시간 소요) <br>
+&emsp; ![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
+&emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
+&emsp; Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
+&emsp; (왼쪽 : 핸드폰으로 촬영한 화면, 오른쪽 : RC카 카메라 화면) <br>
 &emsp; ![조립테스트 영상 2개 합친것 용량압축](https://github.com/user-attachments/assets/b7a05f9c-ae1a-4dd6-bbd7-6c5992a32da3) <br>
 <br><br>
 
