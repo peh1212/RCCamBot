@@ -885,6 +885,8 @@ spring.jpa.hibernate.ddl-auto=update
 
 :satellite: **9. ESP32-CAM 통신 테스트** <br>
 &emsp; RC카 전원 On시(ESP32-CAM 부팅시) DB에 디바이스 정보가 등록되는지 확인합니다. <br>
+&emsp; `MAC주소는 고유하기 때문에 이후에 재부팅시 라우터에서 다른 ip주소를 할당받아도 ip주소만 새로 갱신됩니다.` <br>
+&emsp; `RC카 이름은 안드로이드 앱에서 사용자가 설정하여 저장할 수 있습니다.` <br>
 &emsp; ![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br>
 
 ***
