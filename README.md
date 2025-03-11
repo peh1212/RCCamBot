@@ -923,5 +923,8 @@ spring.jpa.hibernate.ddl-auto=update
 &emsp; 안드로이드 앱의 UI를 디자인합니다. <br>
 &emsp; 메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼으로 구성합니다. <br>
 &emsp; RC카 설정 화면에서는 전원이 켜져있는 RC카를 탐색하여 고유 ID를 저장하고 관리할 수 있습니다. <br>
-&emsp; ![android ui](https://github.com/user-attachments/assets/d29bb7d1-cd11-4348-b9a9-4658915dd3c8) <br>
+&emsp; ![android ui](https://github.com/user-attachments/assets/fdb40f3a-f6a1-4f5e-a076-34cccf26eece) <br><br>
+
+:ticket: **2. 레트로핏 설정** <br>
+&emsp; 스프링부트 서버와 통신하기 위하여 레트로핏을 사용합니다. <br>
 
