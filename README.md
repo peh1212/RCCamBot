@@ -1079,5 +1079,12 @@ public class SavedRCCarAdapter extends ArrayAdapter<String> {
 
 
 :ticket: **2. 스프링부트 서버에서 RC카 정보 가져오기** <br>
-&emsp; Retrofit을 이용하여 스프링부트 서버에 저장된 RC카 정보를 가져옵니다. <br>
+&emsp; Retrofit을 이용하여 스프링부트 서버에 저장된 RC카 정보를 가져옵니다. <br><br>
+
+&emsp; Retrofit을 사용하기 위해서 `build.gradle.kts`의 dependencies에 레트로핏 의존성을 추가하고 설치합니다. <br>
+### build.gradle.kts
+```java
+implementation("com.squareup.retrofit2:retrofit:2.9.0")
+implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+```
 
