@@ -132,6 +132,14 @@
 #define RIGHT_MOTOR_FORWARD_PIN 2
 #define RIGHT_MOTOR_BACKWARD_PIN 4
 
+// DC모터 PWM 설정
+#define LEFT_MOTOR_PWM_CHANNEL_FORWARD 6
+#define LEFT_MOTOR_PWM_CHANNEL_BACKWARD 7
+#define RIGHT_MOTOR_PWM_CHANNEL_FORWARD 10
+#define RIGHT_MOTOR_PWM_CHANNEL_BACKWARD 11
+#define PWM_FREQUENCY 1000
+#define PWM_RESOLUTION 8
+
 // 릴레이 핀 설정
 #define RELAY_PIN 3
 
@@ -144,6 +152,10 @@ Servo servo2;
 // 0~180도, 초기위치 90도
 int currentAngle1 = 90;
 int currentAngle2 = 90;
+
+// DC모터 속도설정(0~255)
+// 듀티비 50%
+int motorSpeed = 127;
 
 // 웹 서버 객체 생성
 WebServer server(80);
@@ -222,12 +234,16 @@ void setup() {
   // 서보모터 설정
   servo1.attach(SERVO_PIN_1);
   servo2.attach(SERVO_PIN_2);
-  
+
   // DC모터 설정
-  pinMode(LEFT_MOTOR_FORWARD_PIN, OUTPUT);
-  pinMode(LEFT_MOTOR_BACKWARD_PIN, OUTPUT);
-  pinMode(RIGHT_MOTOR_FORWARD_PIN, OUTPUT);
-  pinMode(RIGHT_MOTOR_BACKWARD_PIN, OUTPUT);
+  ledcSetup(LEFT_MOTOR_PWM_CHANNEL_FORWARD, PWM_FREQUENCY, PWM_RESOLUTION);
+  ledcSetup(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, PWM_FREQUENCY, PWM_RESOLUTION);
+  ledcSetup(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, PWM_FREQUENCY, PWM_RESOLUTION);
+  ledcSetup(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, PWM_FREQUENCY, PWM_RESOLUTION);
+  ledcAttachPin(LEFT_MOTOR_FORWARD_PIN, LEFT_MOTOR_PWM_CHANNEL_FORWARD);
+  ledcAttachPin(LEFT_MOTOR_BACKWARD_PIN, LEFT_MOTOR_PWM_CHANNEL_BACKWARD);
+  ledcAttachPin(RIGHT_MOTOR_FORWARD_PIN, RIGHT_MOTOR_PWM_CHANNEL_FORWARD);
+  ledcAttachPin(RIGHT_MOTOR_BACKWARD_PIN, RIGHT_MOTOR_PWM_CHANNEL_BACKWARD);
 
   // 릴레이 설정
   pinMode(RELAY_PIN, OUTPUT);
@@ -237,10 +253,10 @@ void setup() {
   servo2.write(currentAngle2);
 
   // DC모터 초기상태 정지
-  digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
-  digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-  digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
-  digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+  ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+  ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+  ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+  ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
 
   // 릴레이 초기상태 OFF
   digitalWrite(RELAY_PIN, LOW);
@@ -332,40 +348,40 @@ void handleMotor() {
 
   switch (motorState) {
     case 0: // 정지
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
       break;
     case 1: // 전진
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, HIGH);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, HIGH);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, motorSpeed);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, motorSpeed);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
       break;
     case 2: // 후진
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, HIGH);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, HIGH);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, motorSpeed);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, motorSpeed);
       break;
     case 3: // 좌회전
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, HIGH);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, motorSpeed);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
       break;
     case 4: // 우회전
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, HIGH);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, motorSpeed);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
       break;
     default: // 정지
-      digitalWrite(LEFT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(LEFT_MOTOR_BACKWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_FORWARD_PIN, LOW);
-      digitalWrite(RIGHT_MOTOR_BACKWARD_PIN, LOW);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(LEFT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_FORWARD, 0);
+      ledcWrite(RIGHT_MOTOR_PWM_CHANNEL_BACKWARD, 0);
       break;
   }
 
@@ -431,7 +447,7 @@ void sendDeviceInfo() {
 
   String macAddress = WiFi.macAddress();
   String ipAddress = WiFi.localIP().toString();
-  String deviceName = "MyRCCar"; // 안드로이드 앱에서 설정 가능
+  String deviceName = "MyRCCar";
 
   String json = "{\"macAddress\":\"" + macAddress + "\",\"deviceIp\":\"" + ipAddress + "\",\"deviceName\":\"" + deviceName + "\"}";
 
