@@ -447,7 +447,7 @@ void sendDeviceInfo() {
 
   String macAddress = WiFi.macAddress();
   String ipAddress = WiFi.localIP().toString();
-  String deviceName = "MyRCCar";
+  String deviceName = "MyRCCar"; // 안드로이드 앱에서 이름 설정 가능
 
   String json = "{\"macAddress\":\"" + macAddress + "\",\"deviceIp\":\"" + ipAddress + "\",\"deviceName\":\"" + deviceName + "\"}";
 
