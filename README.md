@@ -970,7 +970,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // RC카 찾기 버튼
+        // RC카 설정 버튼
         Button buttonRCCarSetting = findViewById(R.id.buttonRCCarSetting);
         buttonRCCarSetting.setOnClickListener(new View.OnClickListener() {
             @Override
