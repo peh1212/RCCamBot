@@ -935,12 +935,149 @@ spring.jpa.hibernate.ddl-auto=update
 
 ***
 ### 5. 안드로이드앱 개발
-:pager: **1. UI 화면 구성하기** <br>
-&emsp; 안드로이드 앱의 UI를 디자인합니다. <br>
-&emsp; 메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼으로 구성합니다. <br>
-&emsp; RC카 설정 화면에서는 전원이 켜져있는 RC카를 탐색하여 고유 ID를 저장하고 관리할 수 있습니다. <br>
-&emsp; ![android ui](https://github.com/user-attachments/assets/fdb40f3a-f6a1-4f5e-a076-34cccf26eece) <br><br>
+:pager: **1. UI 구성하기** <br>
+### activity_main.xml
+&emsp; ![메인화면](https://github.com/user-attachments/assets/a7792ca7-bd3b-4d7e-9aad-02559bf2cd5c) <br>
+&emsp; 메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼과 찍은 사진들을 조회하는 버튼으로 구성합니다. <br><br>
 
-:ticket: **2. 레트로핏 설정** <br>
-&emsp; 스프링부트 서버와 통신하기 위하여 레트로핏을 사용합니다. <br>
+### activity_rccar.xml
+&emsp; ![RC카 설정화면](https://github.com/user-attachments/assets/db5bf7f9-dd9c-428f-8bf4-6453d42642e0) <br>
+&emsp; `RC카 설정` 버튼을 누르면 RC카 리스트가 나오도록 합니다. <br>
+&emsp; 이 화면에서는 `RC카 찾기` 버튼을 눌러 전원이 켜져있는 RC카를 탐색하고, RC카에 ID를 설정하여 저장하고 관리할 수 있습니다. <br><br>
+
+### detected_rccar_item.xml
+&emsp; ![감지된 RC카 리스트](https://github.com/user-attachments/assets/8962886b-1c21-4340-b50f-24221f544b6e) <br>
+&emsp; `등록 가능한 RC카` 리스트뷰에는 이 아이템이 모델링되며, `RC카 찾기` 버튼을 눌렀을 때 탐색된 RC카가 나옵니다. <br><br>
+
+### rccar_item.xml
+&emsp; ![저장된 RC카 리스트](https://github.com/user-attachments/assets/8eaa5115-ed7a-4f8c-9d13-8e93379b5bc6) <br>
+&emsp; `저장된 RC카` 리스트뷰에는 이 아이템이 모델링되며, `등록 가능한 RC카` 리스트에서 저장한 RC카가 등록됩니다. <br><br>
+<br>
+
+&emsp; intent를 이용하여 메인화면에서 `RC카 찾기`버튼을 누르면 RC카 설정 창이 뜨도록 합니다. <br>
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        // RC카 찾기 버튼
+        Button buttonRCCarSetting = findViewById(R.id.buttonRCCarSetting);
+        buttonRCCarSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fm = getSupportFragmentManager();
+                RCCarSettingDialog dialog = new RCCarSettingDialog();
+                dialog.show(fm, "activity_rccar");
+            }
+        });
+    }
+}
+```
+<br>
+
+&emsp; 리스트뷰와 리스트아이템을 연결하기 위한 어댑터들을 작성하고, 더미데이터를 추가하여 제대로 모델링되는지 확인합니다. <br>
+### RCCarSettingDialog.java
+```java
+public class RCCarSettingDialog extends AppCompatDialogFragment {
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = new Dialog(requireContext());
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.activity_rccar);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        }
+
+        ListView listViewSavedRCCar = dialog.findViewById(R.id.listViewSavedRCCar);
+        ListView listViewDetectedRCCar = dialog.findViewById(R.id.listViewDetectedRCCar);
+
+        // 리스트 아이템 데이터 추가
+        List<String> itemList = new ArrayList<>();
+        itemList.add("RC CAR NAME");
+        itemList.add("RC CAR NAME");
+        itemList.add("RC CAR NAME");
+        // 리스트 아이템 데이터 추가
+        List<String> itemList2 = new ArrayList<>();
+        itemList2.add("RC CAR ADDRESS");
+        itemList2.add("RC CAR ADDRESS");
+        itemList2.add("RC CAR ADDRESS");
+
+        // ArrayAdapter를 사용하여 리스트뷰와 연결
+        SavedRCCarAdapter adapter = new SavedRCCarAdapter(requireContext(), itemList);
+        listViewSavedRCCar.setAdapter(adapter);
+        DetectedRCCarAdapter adapter2 = new DetectedRCCarAdapter(requireContext(), itemList2);
+        listViewDetectedRCCar.setAdapter(adapter2);
+
+        return dialog;
+    }
+}
+```
+
+### DetectedRCCarAdapter.java
+```java
+public class DetectedRCCarAdapter extends ArrayAdapter<String> {
+
+    public DetectedRCCarAdapter(Context context, List<String> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
+        }
+
+        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
+
+        // 현재 아이템 값 가져오기
+        String item = getItem(position);
+        textViewRCCarAddress.setText(item);
+
+        return convertView;
+    }
+}
+```
+
+### SavedRCCarAdapter.java
+```java
+public class SavedRCCarAdapter extends ArrayAdapter<String> {
+
+    public SavedRCCarAdapter(Context context, List<String> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.rccar_item, parent, false);
+        }
+
+        TextView textViewRCCarName = convertView.findViewById(R.id.textViewRCCarName);
+
+        // 현재 아이템 값 가져오기
+        String item = getItem(position);
+        textViewRCCarName.setText(item);
+
+        return convertView;
+    }
+}
+```
+&emsp; ![UI디자인](https://github.com/user-attachments/assets/d370929c-353d-4b9c-91e4-26042203bd78) <br><br>
+
+
+:ticket: **2. 스프링부트 서버에서 RC카 정보 가져오기** <br>
+&emsp; Retrofit을 이용하여 스프링부트 서버에 저장된 RC카 정보를 가져옵니다. <br>
 
