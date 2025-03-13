@@ -1176,7 +1176,7 @@ public interface RCCarApiService {
 
     // RC카 정보 수정하기
     @PATCH("/api/rc/device/{id}")
-    Call<Esp32CamDevice> updateDevice(@Path("id") Long id, @Body Esp32CamDeviceDTO deviceDTO);
+    Call<Esp32CamDeviceDTO> updateDevice(@Path("id") Long id, @Body Esp32CamDeviceDTO deviceDTO);
 
     // 서보모터 제어
     @POST("/api/rc/servo")
@@ -1252,5 +1252,75 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
     }
 }
 ```
+
+<br>
+
+&emsp; `RCCarSettingDialog`에서 `RC카 찾기`버튼을 눌렀을 시 레트로핏 객체를 이용하여 스프링부트 서버 DB에서 RC카 정보를 가져옵니다. <br>
+### RCCarSettingDialog.java
+```java
+public class RCCarSettingDialog extends AppCompatDialogFragment {
+
+    private List<Esp32CamDeviceDTO> detectedList = new ArrayList<>();
+    private RCCarApiService apiService;
+    private DetectedRCCarAdapter detectedAdapter;
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = new Dialog(requireContext());
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.activity_rccar);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        }
+
+        // 저장된 RC카 리스트뷰
+        ListView listViewSavedRCCar = dialog.findViewById(R.id.listViewSavedRCCar);
+
+        // 등록 가능한 RC카 리스트뷰
+        ListView listViewDetectedRCCar = dialog.findViewById(R.id.listViewDetectedRCCar);
+        // Retrofit 클라이언트에서 API 서비스 가져오기
+        apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
+        // 빈 리스트로 어댑터 초기화
+        detectedAdapter = new DetectedRCCarAdapter(requireContext(), detectedList);
+        listViewDetectedRCCar.setAdapter(detectedAdapter);
+
+        // RC카 찾기 버튼
+        Button buttonFindRCCar = dialog.findViewById(R.id.buttonFindRCCar);
+        // RC카 찾기 버튼 클릭 이벤트
+        buttonFindRCCar.setOnClickListener(v -> fetchDetectedRCCars());
+
+        return dialog;
+    }
+
+    // Retrofit을 사용해 RC카 목록 가져오기
+    private void fetchDetectedRCCars() {
+        apiService.getAllDevices().enqueue(new Callback<List<Esp32CamDeviceDTO>>() {
+            @Override
+            public void onResponse(Call<List<Esp32CamDeviceDTO>> call, Response<List<Esp32CamDeviceDTO>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    detectedList.clear();  // 기존 리스트 초기화
+                    detectedList.addAll(response.body());  // 새로운 데이터 추가
+                    detectedAdapter.notifyDataSetChanged();  // UI 갱신
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Esp32CamDeviceDTO>> call, Throwable t) {
+                Toast.makeText(requireContext(), "RC카 목록 불러오기 실패", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}
+```
+
+<br>
+
+&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카 정보(MAC주소)가 불러와지는지 확인합니다. <br>
+&emsp; ![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
+&emsp; ![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
+
 
 :joystick: **5. RC카 제어하기** <br>
