@@ -1105,5 +1105,62 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 &emsp; `android:usesCleartextTraffic="true"` : 안드로이드 9.0 이상에서는 기본적으로 HTTPS만 허용하고 HTTP를 차단하는데, 이 속성을 true로 설정하면 HTTP 요청을 보낼 수 있습니다. <br><br>
 
 :artificial_satellite: **3. Retrofit API Service와 Retrofit Client 작성하기** <br>
+&emsp; 스프링부트의 컨트롤러에 대응되는 레트로핏 서비스 인터페이스를 작성합니다. <br>
+### RCCarApiService.java
+```java
+public interface RCCarApiService {
+
+    // 모든 RC카 조회하기
+    @GET("/api/rc/devices")
+    Call<List<Esp32CamDeviceDTO>> getAllDevices();
+
+    // RC카 정보 수정하기
+    @PATCH("/api/rc/device/{id}")
+    Call<Esp32CamDevice> updateDevice(@Path("id") Long id, @Body Esp32CamDeviceDTO deviceDTO);
+
+    // 서보모터 제어
+    @POST("/api/rc/servo")
+    Call<String> controlServo(@Body Map<String, Integer> request);
+
+    // DC모터 제어
+    @POST("/api/rc/motor")
+    Call<String> controlMotor(@Body Map<String, Integer> request);
+
+    // 릴레이 제어
+    @POST("/api/rc/relay")
+    Call<String> controlRelay(@Body Map<String, Integer> request);
+
+    // 모든 이미지 조회하기
+    @GET("/api/rc/image")
+    Call<List<Map<String, String>>> getAllImages();
+}
+```
+
+<br>
+
+&emsp; 레트로핏 객체를 생성하는 레트로핏 클라이언트를 작성합니다. <br>
+### RetrofitClient.java
+```java
+public class RetrofitClient {
+
+    // 스프링부트 서버 URL
+    private static final String BASE_URL = "**********";
+
+    private static Retrofit retrofit = null;
+
+    public static Retrofit getClient(String baseUrl) {
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofit;
+    }
+}
+
+```
+
+<br>
 
 :repeat: **4. 스프링부트 서버 DB에서 RC카 정보 가져오고(GET) DB에 RC카 정보 저장하기(POST)** <br>
