@@ -944,11 +944,11 @@ spring.jpa.hibernate.ddl-auto=update
 ### activity_rccar.xml
 &emsp; ![RC카 설정화면](https://github.com/user-attachments/assets/db5bf7f9-dd9c-428f-8bf4-6453d42642e0) <br>
 &emsp; `RC카 설정` 버튼을 누르면 RC카 리스트가 나오도록 합니다. <br>
-&emsp; 이 화면에서는 `RC카 찾기` 버튼을 눌러 전원이 켜져있는 RC카를 탐색하고, RC카에 ID를 설정하여 저장하고 관리할 수 있습니다. <br><br>
+&emsp; 이 화면에서는 `RC카 찾기` 버튼을 눌러 DB에 등록되어 있는 RC카 정보를 가져오고, RC카에 ID를 설정하여 저장하고 관리할 수 있습니다. <br><br>
 
 ### detected_rccar_item.xml
 &emsp; ![감지된 RC카 리스트](https://github.com/user-attachments/assets/8962886b-1c21-4340-b50f-24221f544b6e) <br>
-&emsp; `등록 가능한 RC카` 리스트뷰에는 이 아이템이 모델링되며, `RC카 찾기` 버튼을 눌렀을 때 탐색된 RC카가 나옵니다. <br><br>
+&emsp; `등록 가능한 RC카` 리스트뷰에는 이 아이템이 모델링되며, `RC카 찾기` 버튼을 눌렀을 때 DB에 저장되어 있는 RC카가 나옵니다. <br><br>
 
 ### rccar_item.xml
 &emsp; ![저장된 RC카 리스트](https://github.com/user-attachments/assets/8eaa5115-ed7a-4f8c-9d13-8e93379b5bc6) <br>
