@@ -1078,8 +1078,8 @@ public class SavedRCCarAdapter extends ArrayAdapter<String> {
 &emsp; ![UI디자인](https://github.com/user-attachments/assets/d370929c-353d-4b9c-91e4-26042203bd78) <br><br>
 
 
-:ticket: **2. 스프링부트 서버에서 RC카 정보 가져오기** <br>
-&emsp; Retrofit을 이용하여 스프링부트 서버에 저장된 RC카 정보를 가져옵니다. <br><br>
+:ticket: **2. Retrofit 설정하기** <br>
+&emsp; 스프링부트 서버와 통신하기 위해 Retrofit을 사용합니다. <br><br>
 
 &emsp; Retrofit을 사용하기 위해서 `build.gradle.kts`의 dependencies에 레트로핏 의존성을 추가하고 설치합니다. <br>
 ### build.gradle.kts
@@ -1088,3 +1088,22 @@ implementation("com.squareup.retrofit2:retrofit:2.9.0")
 implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 ```
 
+<br>
+
+&emsp; `AndroidManifest.xml`에 설정을 추가합니다. <br>
+### AndroidManifest.xml
+```java
+<uses-permission android:name="android.permission.INTERNET" />
+
+<application
+    ...
+    android:usesCleartextTraffic="true"
+    ... >
+```
+
+&emsp; `<uses-permission android:name="android.permission.INTERNET" />` : 앱이 인터넷에 연결할 수 있게 허용하는 권한으로 GET, POST 등의 API 요청을 보내기 위해 필요합니다. <br>
+&emsp; `android:usesCleartextTraffic="true"` : 안드로이드 9.0 이상에서는 기본적으로 HTTPS만 허용하고 HTTP를 차단하는데, 이 속성을 true로 설정하면 HTTP 요청을 보낼 수 있습니다. <br><br>
+
+:artificial_satellite: **3. Retrofit API Service와 Retrofit Client 작성하기** <br>
+
+:repeat: **4. 스프링부트 서버 DB에서 RC카 정보 가져오고(GET) DB에 RC카 정보 저장하기(POST)** <br>
