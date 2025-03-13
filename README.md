@@ -1,4 +1,4 @@
-![header](https://capsule-render.vercel.app/api?type=waving&height=250&color=2196f3&text=ESP32-CAM%20자동차%20원격제어%20스트리밍%20시스템&fontSize=42&strokeWidth=0&fontColor=ffffff&fontAlignY=38)
+![header](https://capsule-render.vercel.app/api?type=waving&height=280&color=EECCCC&text=ESP32-CAM%20RC%20CAR&fontColor=363636&fontAlignY=40&fontSize=60&textBg=false)
 
 ***
 ### 0. 프로젝트 개요
