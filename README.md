@@ -1224,5 +1224,33 @@ public class RetrofitClient {
 <br>
 
 :repeat: **4. 스프링부트 서버 DB에서 RC카 정보 가져오고(GET) DB에 RC카 정보 저장하기(POST)** <br>
+&emsp; Retrofit에서 데이터를 불러와 리스트뷰에 표시할 어댑터를 수정하고, `RC카 찾기`버튼을 눌렀을 시 갱신되도록 합니다. <br><br>
+&emsp; `DetectedRCCarAdapter`에서 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 MAC주소를 가져와 getView()에서 표시합니다. <br>
+### DetectedRCCarAdapter.java
+```java
+public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
+
+    public DetectedRCCarAdapter(Context context, List<Esp32CamDeviceDTO> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
+        }
+
+        // RC카의 MAC주소를 표시할 텍스트뷰
+        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
+
+        Esp32CamDeviceDTO item = getItem(position);
+        if (item != null) {
+            textViewRCCarAddress.setText(item.getMacAddress());
+        }
+
+        return convertView;
+    }
+}
+```
 
 :joystick: **5. RC카 제어하기** <br>
