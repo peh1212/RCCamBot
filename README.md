@@ -1105,6 +1105,65 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 &emsp; `android:usesCleartextTraffic="true"` : 안드로이드 9.0 이상에서는 기본적으로 HTTPS만 허용하고 HTTP를 차단하는데, 이 속성을 true로 설정하면 HTTP 요청을 보낼 수 있습니다. <br><br>
 
 :artificial_satellite: **3. Retrofit API Service와 Retrofit Client 작성하기** <br>
+&emsp; 스프링부트와 데이터를 주고받기 위한 DTO를 작성합니다. <br>
+&emsp; Retrofit에는 Lombok이 없으므로 생성자와 Getter, Setter 등 필요한 메서드를 직접 작성합니다. <br>
+### Esp32CamDeviceDTO.java
+```java
+public class Esp32CamDeviceDTO {
+
+    private String macAddress;
+    private String deviceIp;
+    private String deviceName;
+
+    // 기본 생성자
+    public Esp32CamDeviceDTO() {}
+
+    // 매개변수를 받는 생성자
+    public Esp32CamDeviceDTO(String macAddress, String deviceIp, String deviceName) {
+        this.macAddress = macAddress;
+        this.deviceIp = deviceIp;
+        this.deviceName = deviceName;
+    }
+
+    // @Getter, @Setter
+    public String getMacAddress() {
+        return macAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
+    }
+
+    public String getDeviceIp() {
+        return deviceIp;
+    }
+
+    public void setDeviceIp(String deviceIp) {
+        this.deviceIp = deviceIp;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    // @toString
+    @Override
+    public String toString() {
+        return "Esp32CamDeviceDTO{" +
+                "macAddress='" + macAddress + '\'' +
+                ", deviceIp='" + deviceIp + '\'' +
+                ", deviceName='" + deviceName + '\'' +
+                '}';
+    }
+}
+```
+
+<br>
+
 &emsp; 스프링부트의 컨트롤러에 대응되는 레트로핏 서비스 인터페이스를 작성합니다. <br>
 ### RCCarApiService.java
 ```java
