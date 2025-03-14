@@ -1224,38 +1224,8 @@ public class RetrofitClient {
 <br>
 
 :repeat: **4. 스프링부트 서버 DB에서 RC카 정보 가져오고(GET) DB에 RC카 정보 저장하기(POST)** <br>
-&emsp; Retrofit에서 데이터를 불러와 리스트뷰에 표시할 어댑터를 수정하고, `RC카 찾기`버튼을 눌렀을 시 갱신되도록 합니다. <br><br>
-&emsp; `DetectedRCCarAdapter`에서 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 MAC주소를 가져와 getView()에서 표시합니다. <br>
-### DetectedRCCarAdapter.java
-```java
-public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 
-    public DetectedRCCarAdapter(Context context, List<Esp32CamDeviceDTO> items) {
-        super(context, 0, items);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
-        }
-
-        // RC카의 MAC주소를 표시할 텍스트뷰
-        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
-
-        Esp32CamDeviceDTO item = getItem(position);
-        if (item != null) {
-            textViewRCCarAddress.setText(item.getMacAddress());
-        }
-
-        return convertView;
-    }
-}
-```
-
-<br>
-
-&emsp; `RCCarSettingDialog`에서 `RC카 찾기`버튼을 눌렀을 시 레트로핏 객체를 이용하여 스프링부트 서버 DB에서 RC카 정보를 가져옵니다. <br>
+&emsp; RC카 설정창에서 `RC카 찾기`버튼을 눌렀을 시 레트로핏을 이용하여 스프링부트 DB에서 RC카 정보를 가져옵니다. <br>
 ### RCCarSettingDialog.java
 ```java
 public class RCCarSettingDialog extends AppCompatDialogFragment {
@@ -1318,12 +1288,42 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
 
 <br>
 
-&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카 정보(MAC주소)가 불러와지는지 확인합니다. <br>
+&emsp; `등록 가능한 RC카` 리스트뷰에 표시할 어댑터가 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 MAC주소를 가져와 getView()에서 표시합니다. <br>
+### DetectedRCCarAdapter.java
+```java
+public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
+
+    public DetectedRCCarAdapter(Context context, List<Esp32CamDeviceDTO> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
+        }
+
+        // RC카의 MAC주소를 표시할 텍스트뷰
+        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
+
+        Esp32CamDeviceDTO item = getItem(position);
+        if (item != null) {
+            textViewRCCarAddress.setText(item.getMacAddress());
+        }
+
+        return convertView;
+    }
+}
+```
+
+<br>
+
+
+&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카의 MAC주소가 불러와지는지 확인합니다. <br>
 &emsp; ![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
 &emsp; ![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
 
-&emsp; 불러와진 RC카에서 `저장`버튼을 누르면 사용자에게 `deviceName`을 입력받고 이 이름을 DB에 저장한 후 `저장된 RC카 리스트`에 이 이름과 MAC주소를 띄웁니다. <br>
-&emsp; `DetectedRCCarAdapter`에서 `저장` 버튼을 눌렀을 시 다이얼로그 창을 띄워 `deviceName`을 입력받고 이를 DB에 저장하는 버튼 클릭 이벤트를 작성합니다. <br>
+&emsp; 불러와진 MAC 주소의 `저장` 버튼을 눌렀을 시 다이얼로그 창을 띄워 사용자에게 RC카 이름을 입력받고 이를 DB에 저장하는 버튼 클릭 이벤트를 작성합니다. <br>
 ### DetectedRCCarAdapter.java
 ```java
 public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
@@ -1396,7 +1396,7 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 
 <br>
 
-&emsp; DB에 저장된 정보를 가져와 `저장된 RC카` 리스트뷰에 deviceName과 macAddress를 표시합니다. <br>
+&emsp; DB에 저장된 RC카 정보를 가져와 `저장된 RC카` 리스트뷰에 RC카 이름과 MAC주소를 표시합니다. <br>
 ### RCCarSettingDialog.java
 ```java
 public class RCCarSettingDialog extends AppCompatDialogFragment {
@@ -1481,9 +1481,11 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
         });
     }
 }
-
 ```
 
+<br>
+
+&emsp; `저장된 RC카` 리스트뷰에 표시할 어댑터가 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 RC카 이름과 MAC주소를 가져와 getView()에서 표시합니다. <br>
 ### SavedRCCarAdapter.java
 ```java
 public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
