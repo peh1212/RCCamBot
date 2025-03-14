@@ -1112,6 +1112,7 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 ```java
 public class Esp32CamDeviceDTO {
 
+    private Long id;
     private String macAddress;
     private String deviceIp;
     private String deviceName;
@@ -1120,13 +1121,21 @@ public class Esp32CamDeviceDTO {
     public Esp32CamDeviceDTO() {}
 
     // 매개변수를 받는 생성자
-    public Esp32CamDeviceDTO(String macAddress, String deviceIp, String deviceName) {
+    public Esp32CamDeviceDTO(Long id, String macAddress, String deviceIp, String deviceName) {
+        this.id = id;
         this.macAddress = macAddress;
         this.deviceIp = deviceIp;
         this.deviceName = deviceName;
     }
 
     // @Getter, @Setter
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
     public String getMacAddress() {
         return macAddress;
     }
@@ -1155,7 +1164,8 @@ public class Esp32CamDeviceDTO {
     @Override
     public String toString() {
         return "Esp32CamDeviceDTO{" +
-                "macAddress='" + macAddress + '\'' +
+                "id=" + id +
+                ", macAddress='" + macAddress + '\'' +
                 ", deviceIp='" + deviceIp + '\'' +
                 ", deviceName='" + deviceName + '\'' +
                 '}';
@@ -1338,14 +1348,18 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
         }
 
-        TextView textViewDeviceName = convertView.findViewById(R.id.textViewDeviceName);
-        TextView textViewMacAddress = convertView.findViewById(R.id.textViewMacAddress);
+        // RC카의 MAC주소를 표시할 텍스트뷰
+        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
+
+        Esp32CamDeviceDTO item = getItem(position);
+        if (item != null) {
+            textViewRCCarAddress.setText(item.getMacAddress());
+        }
+
+        // RC카 저장 버튼
         Button buttonSave = convertView.findViewById(R.id.buttonSave);
 
-        Esp32CamDeviceDTO device = getItem(position);
-        textViewDeviceName.setText(device.getDeviceName());
-        textViewMacAddress.setText(device.getMacAddress());
-
+        // RC카 저장 버튼 클릭 이벤트
         buttonSave.setOnClickListener(v -> {
             // 사용자 입력 다이얼로그
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -1356,6 +1370,7 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
             input.setHint("새로운 이름을 입력하세요");
             builder.setView(input);
 
+            Esp32CamDeviceDTO device = getItem(position);
             builder.setPositiveButton("저장", (dialog, which) -> {
                 String newDeviceName = input.getText().toString();
                 updateDeviceInBackend(device.getId(), newDeviceName); // 이름 업데이트
@@ -1391,7 +1406,6 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
         });
     }
 }
-
 ```
 
 <br>
@@ -1411,6 +1425,7 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = new Dialog(requireContext());
+
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.activity_rccar);
 
@@ -1418,20 +1433,23 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
             dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
         }
 
+        // RC카 찾기 버튼
+        Button buttonFindRCCar = dialog.findViewById(R.id.buttonFindRCCar);
+        // RC카 찾기 버튼 클릭 이벤트
+        buttonFindRCCar.setOnClickListener(v -> fetchDetectedRCCars());
+
+        // 등록 가능한 RC카 리스트뷰
+        ListView listViewDetectedRCCar = dialog.findViewById(R.id.listViewDetectedRCCar);
+        // Retrofit 클라이언트에서 API 서비스 가져오기
+        apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
+        // 빈 리스트로 어댑터 초기화
+        detectedAdapter = new DetectedRCCarAdapter(requireContext(), detectedList);
+        listViewDetectedRCCar.setAdapter(detectedAdapter);
+
         // 저장된 RC카 리스트뷰
         ListView listViewSavedRCCar = dialog.findViewById(R.id.listViewSavedRCCar);
         savedAdapter = new SavedRCCarAdapter(requireContext(), savedList);
         listViewSavedRCCar.setAdapter(savedAdapter);
-
-        // 탐지된 RC카 리스트뷰
-        ListView listViewDetectedRCCar = dialog.findViewById(R.id.listViewDetectedRCCar);
-        apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
-        detectedAdapter = new DetectedRCCarAdapter(requireContext(), detectedList);
-        listViewDetectedRCCar.setAdapter(detectedAdapter);
-
-        // RC카 찾기 버튼
-        Button buttonFindRCCar = dialog.findViewById(R.id.buttonFindRCCar);
-        buttonFindRCCar.setOnClickListener(v -> fetchDetectedRCCars());
 
         // 저장된 RC카 불러오기
         fetchSavedRCCars();
@@ -1439,21 +1457,21 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
         return dialog;
     }
 
-    // 탐지된 RC카 불러오기
+    // Retrofit을 사용해 RC카 목록 가져오기
     private void fetchDetectedRCCars() {
         apiService.getAllDevices().enqueue(new Callback<List<Esp32CamDeviceDTO>>() {
             @Override
             public void onResponse(Call<List<Esp32CamDeviceDTO>> call, Response<List<Esp32CamDeviceDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    detectedList.clear();
-                    detectedList.addAll(response.body());
-                    detectedAdapter.notifyDataSetChanged();
+                    detectedList.clear();  // 기존 리스트 초기화
+                    detectedList.addAll(response.body());  // 새로운 데이터 추가
+                    detectedAdapter.notifyDataSetChanged();  // UI 갱신
                 }
             }
 
             @Override
             public void onFailure(Call<List<Esp32CamDeviceDTO>> call, Throwable t) {
-                Toast.makeText(requireContext(), "탐지된 RC카 불러오기 실패", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "RC카 목록 불러오기 실패", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -1497,15 +1515,15 @@ public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.saved_rccar_item, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.rccar_item, parent, false);
         }
 
-        TextView textViewDeviceName = convertView.findViewById(R.id.textViewDeviceName);
-        TextView textViewMacAddress = convertView.findViewById(R.id.textViewMacAddress);
+        TextView textViewSavedRCCarName = convertView.findViewById(R.id.textViewSavedRCCarName);
+        TextView textViewSavedRCCarAddress = convertView.findViewById(R.id.textViewSavedRCCarAddress);
 
         Esp32CamDeviceDTO device = getItem(position);
-        textViewDeviceName.setText(device.getDeviceName());
-        textViewMacAddress.setText(device.getMacAddress());
+        textViewSavedRCCarName.setText(device.getDeviceName());
+        textViewSavedRCCarAddress.setText(device.getMacAddress());
 
         return convertView;
     }
