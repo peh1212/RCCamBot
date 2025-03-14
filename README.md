@@ -1396,7 +1396,7 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 
 <br>
 
-&emsp; DB에 저장된 RC카 정보를 가져와 `저장된 RC카` 리스트뷰에 RC카 이름과 MAC주소를 표시합니다. <br>
+&emsp; RC카 이름이 갱신된 DB에서 RC카 정보를 가져와 `저장된 RC카` 리스트뷰에 RC카 이름과 MAC주소를 표시합니다. <br>
 ### RCCarSettingDialog.java
 ```java
 public class RCCarSettingDialog extends AppCompatDialogFragment {
