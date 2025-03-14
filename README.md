@@ -1322,5 +1322,109 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
 &emsp; ![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
 &emsp; ![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
 
+&emsp; 불러와진 RC카에서 `저장`버튼을 누르면 사용자에게 `deviceName`을 입력받고 이 이름을 DB에 저장한 후 `저장된 RC카 리스트`에 이 이름과 MAC주소를 띄웁니다. <br>
+&emsp; `DetectedRCCarAdapter`에서 `저장` 버튼을 눌렀을 시 다이얼로그 창을 띄워 `deviceName`을 입력받고 이를 DB에 저장하는 버튼 클릭 이벤트를 작성합니다. <br>
+### DetectedRCCarAdapter.java
+```java
+public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
+
+    public DetectedRCCarAdapter(Context context, List<Esp32CamDeviceDTO> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.detected_rccar_item, parent, false);
+        }
+
+        TextView textViewDeviceName = convertView.findViewById(R.id.textViewDeviceName);
+        TextView textViewMacAddress = convertView.findViewById(R.id.textViewMacAddress);
+        Button buttonSave = convertView.findViewById(R.id.buttonSave);
+
+        Esp32CamDeviceDTO device = getItem(position);
+        textViewDeviceName.setText(device.getDeviceName());
+        textViewMacAddress.setText(device.getMacAddress());
+
+        buttonSave.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle("RC카 저장");
+
+            final EditText input = new EditText(getContext());
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+
+            builder.setPositiveButton("저장", (dialog, which) -> {
+                String userDeviceName = input.getText().toString();
+
+                saveDeviceToBackend(userDeviceName, device.getMacAddress());
+            });
+
+            builder.setNegativeButton("취소", (dialog, which) -> dialog.cancel());
+            builder.show();
+        });
+
+        return convertView;
+    }
+
+    private void saveDeviceToBackend(String deviceName, String macAddress) {
+        RCCarApiService apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
+
+        Esp32CamDeviceDTO request = new Esp32CamDeviceDTO(macAddress, null, deviceName);
+        apiService.saveDevice(request).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "저장 성공!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "저장 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(getContext(), "에러 발생: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}
+```
+
+<br>
+
+&emsp; DB에 저장된 정보를 가져와 `저장된 RC카` 리스트뷰에 표시합니다. <br>
+### RCCarSettingDialog.java
+```java
+```
+
+### SavedRCCarAdapter.java
+```java
+public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
+
+    public SavedRCCarAdapter(Context context, List<String> items) {
+        super(context, 0, items);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.rccar_item, parent, false);
+        }
+
+        TextView textViewRCCarName = convertView.findViewById(R.id.textViewRCCarName);
+        TextView textViewRCCarAddress = convertView.findViewById(R.id.textViewRCCarAddress);
+
+        // 현재 아이템 가져오기
+        Esp32CamDeviceDTO device = getItem(position);
+        if (device != null) {
+            textViewDeviceName.setText(device.getDeviceName());
+            textViewMacAddress.setText(device.getMacAddress());
+        }
+
+        return convertView;
+    }
+}
+```
+
 
 :joystick: **5. RC카 제어하기** <br>
