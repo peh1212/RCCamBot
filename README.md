@@ -1,10 +1,20 @@
 ![header](https://capsule-render.vercel.app/api?type=waving&height=280&color=EECCCC&text=ESP32-CAM%20Project&fontColor=363636&fontAlignY=40&fontSize=60&textBg=false)
 
 ***
-### 0. 프로젝트 개요
+### 프로젝트 개요
 :punch: **1인 프로젝트** <br>
 &emsp; 안드로이드 앱으로 ESP32-CAM 기반의 자동차 2대를 원격 제어하는 프로젝트입니다. <br>
 &emsp; 차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
+
+:clipboard: **프로젝트 내용** <br>
+&emsp; ![아키텍쳐 크기 줄인것](https://github.com/user-attachments/assets/a717732b-9596-40f3-9bce-b749cc75c6c2) <br>
+&emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈입니다. <br>
+&emsp; 이 프로젝트에서는 ESP32-CAM을 활용하여 RC카를 제작하고, 원격 제어 및 실시간 카메라 스트리밍 기능을 구현합니다. <br>
+&emsp; ESP32-CAM은 Wi-Fi를 통해 Spring Boot 서버와 통신하며, HTTP POST 요청을 수신하여 RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공합니다. <br>
+&emsp; 안드로이드 앱에서 사용자의 입력을 받아 Retrofit을 이용하여 Spring Boot 서버로 HTTP 요청을 전송합니다. <br>
+&emsp; Spring Boot는 안드로이드 앱과 ESP32-CAM 자동차가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 관리합니다. <br>
+&emsp; 안드로이드 앱에서는 ESP32-CAM 자동차의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br><br>
+
 
 :calendar: **프로젝트 기간** : <br>
 &emsp; `2025. 2 ~ 2025. 3` <br><br>
@@ -22,28 +32,17 @@
 ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br><br>
 
 :page_with_curl: **목차** : <br>
-&emsp; [1. 시스템 기획](#1-시스템-기획) <br>
-&emsp; [2. 하드웨어 설계](#2-하드웨어-설계) <br>
-&emsp; [3. 펌웨어 개발](#3-펌웨어-개발) <br>
-&emsp; [4. 백엔드 개발](#4-백엔드-개발) <br>
-&emsp; [5. 안드로이드앱 개발](#5-안드로이드앱-개발) <br>
-&emsp; [6. 인공지능 자율주행](#6-인공지능-자율주행) <br>
+&emsp; [1. 하드웨어 설계](#1-하드웨어-설계) <br>
+&emsp; [2. 펌웨어 개발](#2-펌웨어-개발) <br>
+&emsp; [3. 백엔드 개발](#3-백엔드-개발) <br>
+&emsp; [4. 안드로이드앱 개발](#4-안드로이드앱-개발) <br>
+&emsp; [5. 인공지능 자율주행](#5-인공지능-자율주행) <br>
 <br>
 
 ***
-### 1. 시스템 기획
-&emsp; ![시스템기획](https://github.com/user-attachments/assets/aec19f8a-0219-44e0-80bf-7f8e623c7a8b) <br>
-&emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈입니다. <br>
-&emsp; 이 프로젝트에서는 ESP32-CAM을 활용하여 RC카를 제작하고, 원격 제어 및 실시간 카메라 스트리밍 기능을 구현합니다. <br>
-&emsp; ESP32-CAM은 Wi-Fi를 통해 Spring Boot 서버와 통신하며, HTTP POST 요청을 수신하여 RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공합니다. <br>
-&emsp; 안드로이드 앱에서 사용자의 입력을 받아 Retrofit을 이용하여 Spring Boot 서버로 HTTP 요청을 전송합니다. <br>
-&emsp; Spring Boot는 안드로이드 앱과 ESP32-CAM 자동차가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 관리합니다. <br>
-&emsp; 안드로이드 앱에서는 ESP32-CAM 자동차의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br>
-
-***
-### 2. 하드웨어 설계
+### 1. 하드웨어 설계
 :zap: **1. 전체 회로도 그리기** <br>
-&emsp; ![전체 회로](https://github.com/user-attachments/assets/fecb2289-c9cc-4c74-9f7a-d6c053ef4e7b) <br>
+&emsp; ![전체회로도 크기 줄인것](https://github.com/user-attachments/assets/d243d8c6-c5e9-4496-bc7e-b7f1f4aa32e5) <br>
 &emsp; 위와 같이 전체 회로를 구성합니다. <br>
 &emsp; 전원은 18650 배터리를 2S2P로 연결하여 사용합니다. <br>
 &emsp; 스텝다운 컨버터를 사용하여 ESP32-CAM에 5V 전원을 공급합니다. <br>
@@ -78,7 +77,7 @@
 &emsp; `12V LED 라이트` 1개 <br><br>
 
 ***
-### 3. 펌웨어 개발
+### 2. 펌웨어 개발
 :memo: **1. 아두이노 IDE를 이용하여, HTTP 요청으로 카메라 스트리밍, 서보모터, DC모터, 릴레이를 제어하는 코드를 구현하고, ESP32-CAM에 업로드합니다.** <br>
 :warning: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
 &emsp; `-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
@@ -514,7 +513,7 @@ void startServer() {
 <br><br>
 
 ***
-### 4. 백엔드 개발
+### 3. 백엔드 개발
 :seedling: **1. 프로젝트 생성하기** <br>
 &emsp; start.spring.io에서 스프링부트 프로젝트를 생성합니다. <br>
 &emsp; Project : `Gradle - Groovy` <br>
@@ -935,7 +934,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 
 ***
-### 5. 안드로이드앱 개발
+### 4. 안드로이드앱 개발
 :pager: **1. UI 구성하기** <br>
 ### activity_main.xml
 &emsp; ![메인화면](https://github.com/user-attachments/assets/a7792ca7-bd3b-4d7e-9aad-02559bf2cd5c) <br>
@@ -1753,4 +1752,4 @@ public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 <br><br>
 
 ***
-### 6. 인공지능 자율주행
+### 5. 인공지능 자율주행
