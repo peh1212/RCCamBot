@@ -27,7 +27,7 @@
 &emsp; [3. 펌웨어 개발](#3-펌웨어-개발) <br>
 &emsp; [4. 백엔드 개발](#4-백엔드-개발) <br>
 &emsp; [5. 안드로이드앱 개발](#5-안드로이드앱-개발) <br>
-&emsp; 6. 인공지능 자율주행 <br>
+&emsp; [6. 인공지능 자율주행](#6-인공지능-자율주행) <br>
 <br>
 
 ***
@@ -1586,7 +1586,7 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
 
                     for (Esp32CamDeviceDTO device : response.body()) {
                         if (!device.isSaved()) {
-                            // 새로운 객체를 생성하여 기존 데이터 복사
+                            // 새로운 객체를 생성하여 기존 데이터 복사(원본 보호)
                             Esp32CamDeviceDTO newDevice = new Esp32CamDeviceDTO(
                                     device.getId(),
                                     device.getMacAddress(),
@@ -1741,5 +1741,15 @@ public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 }
 ```
 
+<br>
+&emsp; RC카의 이름을 설정하고 앱과 DB에 저장되는지 확인합니다. <br><br>
 
-:joystick: **5. RC카 제어하기** <br>
+&emsp; ![앱에서 DB에 RC카 이름저장 용량압축](https://github.com/user-attachments/assets/6267cf43-d6a4-4c74-9c45-0a221f04843b) <br>
+&emsp; ![앱에서 DB 저장성공](https://github.com/user-attachments/assets/84b86cba-171a-45a2-bf2b-f9b03afdbba4) <br><br>
+
+:joystick: **5. 선택한 RC카 제어하기** <br>
+
+<br><br>
+
+***
+### 6. 인공지능 자율주행
