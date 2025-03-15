@@ -1344,7 +1344,8 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 <br>
 
 
-&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카의 MAC주소가 불러와지는지 확인합니다. <br>
+&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카의 MAC주소가 불러와지는지 확인합니다. <br><br>
+
 &emsp; ![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
 &emsp; ![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
 
