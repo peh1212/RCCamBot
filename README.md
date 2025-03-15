@@ -1361,7 +1361,7 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
     public DetectedRCCarAdapter(Context context, List<Esp32CamDeviceDTO> items, RCCarSettingDialog dialog) {
         super(context, 0, items);
         this.context = context;
-        this.dialog = dialog; // 참조 저장
+        this.dialog = dialog;
     }
 
     @Override
@@ -1397,7 +1397,7 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
             builder.setPositiveButton("저장", (dialog, which) -> {
                 String newDeviceName = input.getText().toString();
                 if (newDeviceName.isEmpty()) {
-                    Toast.makeText(getContext(), "이름을 입력해 주세요", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "이름을 입력해주세요", Toast.LENGTH_SHORT).show();
                 } else {
                     // 이름이 입력된 경우 이름 업데이트를 위한 서버 요청
                     device.setDeviceName(newDeviceName);  // RC카 이름 업데이트
