@@ -6,7 +6,7 @@
 &emsp; 안드로이드 앱으로 ESP32-CAM 기반의 자동차 2대를 원격 제어하는 프로젝트입니다. <br>
 &emsp; 차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
 
-:clipboard: **프로젝트 내용** <br>
+:cloud: **프로젝트 내용** <br>
 &emsp; ![아키텍쳐 크기 줄인것](https://github.com/user-attachments/assets/a717732b-9596-40f3-9bce-b749cc75c6c2) <br>
 &emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈입니다. <br>
 &emsp; 이 프로젝트에서는 ESP32-CAM을 활용하여 RC카를 제작하고, 원격 제어 및 실시간 카메라 스트리밍 기능을 구현합니다. <br>
@@ -42,7 +42,7 @@
 ***
 ### 1. 하드웨어 설계
 :zap: **1. 전체 회로도 그리기** <br>
-&emsp; ![전체회로도 크기 줄인것](https://github.com/user-attachments/assets/d243d8c6-c5e9-4496-bc7e-b7f1f4aa32e5) <br>
+&emsp; ![전체회로도 크기 줄인것](https://github.com/user-attachments/assets/d6328f18-46c5-4bb7-a0d2-b7a5faa7cfac) <br>
 &emsp; 위와 같이 전체 회로를 구성합니다. <br>
 &emsp; 전원은 18650 배터리를 2S2P로 연결하여 사용합니다. <br>
 &emsp; 스텝다운 컨버터를 사용하여 ESP32-CAM에 5V 전원을 공급합니다. <br>
