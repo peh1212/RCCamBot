@@ -8,28 +8,33 @@
 
 :cloud: **프로젝트 내용** <br>
 &emsp; ![아키텍쳐 크기 줄인것](https://github.com/user-attachments/assets/a717732b-9596-40f3-9bce-b749cc75c6c2) <br>
-&emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈입니다. <br>
-&emsp; 이 프로젝트에서는 ESP32-CAM을 활용하여 RC카를 제작하고, 원격 제어 및 실시간 카메라 스트리밍 기능을 구현합니다. <br>
-&emsp; ESP32-CAM은 Wi-Fi를 통해 Spring Boot 서버와 통신하며, HTTP POST 요청을 수신하여 RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공합니다. <br>
-&emsp; 안드로이드 앱에서 사용자의 입력을 받아 Retrofit을 이용하여 Spring Boot 서버로 HTTP 요청을 전송합니다. <br>
-&emsp; Spring Boot는 안드로이드 앱과 ESP32-CAM 자동차가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 관리합니다. <br>
-&emsp; 안드로이드 앱에서는 ESP32-CAM 자동차의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br><br>
+&emsp; 이 프로젝트는 ESP32-CAM RC카와 스프링부트 API와 안드로이드 앱을 개발하여 디바이스-서버-클라이언트 간의 HTTP 통신 시스템을 구축하는 것을 목표로 합니다. <br>
+&emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈로, 이 모듈을 활용하여 RC카를 제작하고, 안드로이드앱에서 원격제어와 실시간 카메라 스트리밍 기능을 구현합니다. <br>
+&emsp; ESP32-CAM RC카는 와이파이를 통해 스프링부트 서버와 통신하며 HTTP POST 요청을 수신하여, RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공하고 사진을 촬영하여 저장합니다. <br>
+&emsp; 스프링부트는 안드로이드 앱과 ESP32-CAM RC카가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 처리하고 관리합니다. <br>
+&emsp; 안드로이드 앱에서는 사용자의 입력을 받아 레트로핏을 이용하여 스프링부트 서버와 HTTP 통신할 수 있으며, ESP32-CAM RC카의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br><br>
 
 
 :calendar: **프로젝트 기간** : <br>
 &emsp; `2025. 2 ~ 2025. 3` <br><br>
 :books: **기술스택** : <br>
 &emsp; ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
-![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white)
-![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white)
+![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white) <br>
+&emsp; ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=coffeescript&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![Retrofit](https://img.shields.io/badge/Retrofit-00B5A6?style=for-the-badge&logo=retrofit&logoColor=white) <br><br>
+![Retrofit](https://img.shields.io/badge/Retrofit-00B5A6?style=for-the-badge&logo=android&logoColor=white) <br>
+&emsp; ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white) <br><br>
+
 :hammer: **개발도구** : <br>
-&emsp; ![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-00979D?style=for-the-badge&logo=arduino&logoColor=white)
-![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white)
-![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br><br>
+&emsp; ![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-00979D?style=for-the-badge&logo=arduino&logoColor=white) <br>
+&emsp; ![Talend API Tester](https://img.shields.io/badge/Talend_API_Tester-FF6D70?style=for-the-badge&logo=talend&logoColor=white) <br>
+&emsp; ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white) <br>
+&emsp; ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br>
+&emsp; ![Thonny](https://img.shields.io/badge/Thonny-3776AB?style=for-the-badge&logo=python&logoColor=white) <br><br>
 
 :page_with_curl: **목차** : <br>
 &emsp; [1. 하드웨어 설계](#1-하드웨어-설계) <br>
