@@ -1850,8 +1850,76 @@ public class MainActivity extends AppCompatActivity {
 
 선택한 RC카 스트리밍 테스트 <br>
 
-![앱 스트리밍 성공 용량압축](https://github.com/user-attachments/assets/87457830-abab-4770-8d32-7b9f23f2c827) <br>
+![앱 스트리밍 성공 용량압축](https://github.com/user-attachments/assets/87457830-abab-4770-8d32-7b9f23f2c827) <br><br>
 
+캡쳐버튼 구현하기 <br>
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+      ...
+
+      // 캡쳐버튼
+      buttonCapture = findViewById(R.id.buttonCapture);
+      // 캡쳐버튼 클릭 리스너
+      buttonCapture.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+              // SharedPreferences에서 선택된 RC카의 ip주소 가져오기
+              SharedPreferences sharedPreferences = getSharedPreferences("RC_CAR_PREFS", MODE_PRIVATE);
+              String selectedDeviceIp = sharedPreferences.getString("selectedDeviceIp", "");
+
+              // ip주소가 없으면 처리 중단
+              if (selectedDeviceIp.isEmpty()) {
+                  Toast.makeText(MainActivity.this, "선택된 RC카가 없습니다.", Toast.LENGTH_SHORT).show();
+                  return;
+              }
+
+              // 캡처 요청 보내기 (백그라운드에서 실행)
+              new Thread(new Runnable() {
+                  @Override
+                  public void run() {
+                      try {
+                          // GET 요청 보낼 URL 생성
+                          URL url = new URL("http://" + selectedDeviceIp + "/capture");
+                          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                          connection.setRequestMethod("GET");
+
+                          // 응답 코드 확인
+                          int responseCode = connection.getResponseCode();
+                          connection.disconnect();
+
+                          // UI 업데이트 (메인 스레드에서 실행)
+                          runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if (responseCode == 200) {
+                                      Toast.makeText(MainActivity.this, "캡처 요청 완료!", Toast.LENGTH_SHORT).show();
+                                  } else {
+                                      Toast.makeText(MainActivity.this, "캡처 요청 실패: " + responseCode, Toast.LENGTH_SHORT).show();
+                                  }
+                              }
+                          });
+
+                      } catch (Exception e) {
+                          e.printStackTrace();
+                          runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  Toast.makeText(MainActivity.this, "캡처 요청 중 오류 발생", Toast.LENGTH_SHORT).show();
+                              }
+                          });
+                      }
+                  }
+              }).start();
+          }
+      });
+```
+![캡쳐기능 구현](https://github.com/user-attachments/assets/404ae8ef-3e8a-4d73-a5b5-8bd9da24ca8b) <br>
+![캡쳐기능 구현 DB](https://github.com/user-attachments/assets/dd61cbbc-b721-48cc-9652-06f1bdbf48c2) <br><br>
 
 <br><br>
 
