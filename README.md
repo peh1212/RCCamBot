@@ -3,59 +3,60 @@
 ***
 ### 프로젝트 개요
 :punch: **1인 프로젝트** <br>
-&emsp; 안드로이드 앱으로 ESP32-CAM 기반의 자동차 2대를 원격 제어하는 프로젝트입니다. <br>
-&emsp; 차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
+안드로이드 앱으로 ESP32-CAM 기반의 자동차 2대를 원격 제어하는 프로젝트입니다. <br>
+차량의 이동을 제어하고, LED 라이트를 ON/OFF하고, 카메라의 방향을 제어하고, 카메라의 영상을 스트리밍하는 기능을 구현합니다. <br><br>
 
 :cloud: **프로젝트 내용** <br>
-&emsp; ![아키텍쳐 크기 줄인것](https://github.com/user-attachments/assets/a717732b-9596-40f3-9bce-b749cc75c6c2) <br>
-&emsp; 이 프로젝트는 ESP32-CAM RC카와 스프링부트 API와 안드로이드 앱을 개발하여 디바이스-서버-클라이언트 간의 HTTP 통신 시스템을 구축하는 것을 목표로 합니다. <br>
-&emsp; ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈로, 이 모듈을 활용하여 RC카를 제작하고, 안드로이드앱에서 원격제어와 실시간 카메라 스트리밍 기능을 구현합니다. <br>
-&emsp; ESP32-CAM RC카는 와이파이를 통해 스프링부트 서버와 통신하며 HTTP POST 요청을 수신하여, RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공하고 사진을 촬영하여 저장합니다. <br>
-&emsp; 스프링부트는 안드로이드 앱과 ESP32-CAM RC카가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 처리하고 관리합니다. <br>
-&emsp; 안드로이드 앱에서는 사용자의 입력을 받아 레트로핏을 이용하여 스프링부트 서버와 HTTP 통신할 수 있으며, ESP32-CAM RC카의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br><br>
+![아키텍쳐 크기 줄인것](https://github.com/user-attachments/assets/a717732b-9596-40f3-9bce-b749cc75c6c2) <br>
+이 프로젝트는 ESP32-CAM RC카와 스프링부트 API와 안드로이드 앱을 개발하여 디바이스-서버-클라이언트 간의 HTTP 통신 시스템을 구축하는 것을 목표로 합니다. <br>
+ESP32-CAM은 Wi-Fi 및 Bluetooth 통신 모듈이 내장된 ESP32 MCU 기반의 카메라 모듈로, 이 모듈을 활용하여 RC카를 제작하고, 안드로이드앱에서 원격제어와 실시간 카메라 스트리밍 기능을 구현합니다. <br>
+ESP32-CAM RC카는 와이파이를 통해 스프링부트 서버와 통신하며 HTTP POST 요청을 수신하여, RC카의 이동 및 카메라 회전, LED 라이트 제어를 수행하고, HTTP GET 요청을 처리하여 실시간 영상 스트리밍을 제공하고 사진을 촬영하여 저장합니다. <br>
+스프링부트는 안드로이드 앱과 ESP32-CAM RC카가 통신할 수 있도록 API를 제공하며, PostgreSQL DB를 사용하여 자동차의 ID, IP주소 등의 데이터를 처리하고 관리합니다. <br>
+안드로이드 앱에서는 사용자의 입력을 받아 레트로핏을 이용하여 스프링부트 서버와 HTTP 통신할 수 있으며, ESP32-CAM RC카의 IP 주소를 스캔하여 고유 ID와 함께 저장할 수 있고, 이를 통해 2대 이상의 자동차를 각각 제어할 수 있습니다. <br><br>
 
 
 :calendar: **프로젝트 기간** : <br>
-&emsp; `2025. 2 ~ 2025. 3` <br><br>
+`2025. 2 ~ 2025. 3` <br><br>
+
 :books: **기술스택** : <br>
-&emsp; ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 ![Arduino](https://img.shields.io/badge/Arduino-00979D?style=for-the-badge&logo=arduino&logoColor=white) <br>
-&emsp; ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=coffeescript&logoColor=white)
+![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=coffeescript&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Retrofit](https://img.shields.io/badge/Retrofit-00B5A6?style=for-the-badge&logo=android&logoColor=white) <br>
-&emsp; ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white) <br><br>
 
 :hammer: **개발도구** : <br>
-&emsp; ![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-00979D?style=for-the-badge&logo=arduino&logoColor=white) <br>
-&emsp; ![Talend API Tester](https://img.shields.io/badge/Talend_API_Tester-FF6D70?style=for-the-badge&logo=talend&logoColor=white) <br>
-&emsp; ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white) <br>
-&emsp; ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br>
-&emsp; ![Thonny](https://img.shields.io/badge/Thonny-3776AB?style=for-the-badge&logo=python&logoColor=white) <br><br>
+![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-00979D?style=for-the-badge&logo=arduino&logoColor=white) <br>
+![Talend API Tester](https://img.shields.io/badge/Talend_API_Tester-FF6D70?style=for-the-badge&logo=talend&logoColor=white) <br>
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white) <br>
+![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white) <br>
+![Thonny](https://img.shields.io/badge/Thonny-3776AB?style=for-the-badge&logo=python&logoColor=white) <br><br>
 
 :page_with_curl: **목차** : <br>
-&emsp; [1. 하드웨어 설계](#1-하드웨어-설계) <br>
-&emsp; [2. 펌웨어 개발](#2-펌웨어-개발) <br>
-&emsp; [3. 백엔드 개발](#3-백엔드-개발) <br>
-&emsp; [4. 안드로이드앱 개발](#4-안드로이드앱-개발) <br>
-&emsp; [5. 인공지능 자율주행](#5-인공지능-자율주행) <br>
+[1. 하드웨어 설계](#1-하드웨어-설계) <br>
+[2. 펌웨어 개발](#2-펌웨어-개발) <br>
+[3. 백엔드 개발](#3-백엔드-개발) <br>
+[4. 안드로이드앱 개발](#4-안드로이드앱-개발) <br>
+[5. 인공지능 자율주행](#5-인공지능-자율주행) <br>
 <br>
 
 ***
 ### 1. 하드웨어 설계
 :zap: **1. 전체 회로도 그리기** <br>
-&emsp; ![전체회로도 크기 줄인것](https://github.com/user-attachments/assets/d6328f18-46c5-4bb7-a0d2-b7a5faa7cfac) <br>
-&emsp; 위와 같이 전체 회로를 구성합니다. <br>
-&emsp; 전원은 18650 배터리를 2S2P로 연결하여 사용합니다. <br>
-&emsp; 스텝다운 컨버터를 사용하여 ESP32-CAM에 5V 전원을 공급합니다. <br>
-&emsp; 서보모터 라인에 스텝다운 컨버터를 사용하여 5V 전원을 공급합니다. <br>
-&emsp; 2채널 DC모터드라이버 모듈을 통해 DC모터 4개를 제어합니다. <br>
-&emsp; 스텝업 컨버터를 사용하여 12V LED 라이트에 전원을 공급합니다. <br>
-&emsp; ESP32-CAM으로 서보모터의 PWM신호를 생성하고, DC모터 드라이버를 제어하고, LED 릴레이를 스위칭합니다. <br>
-&emsp; ESP32-CAM의 출력 핀은 아래와 같이 배정합니다.
+![전체회로도 크기 줄인것](https://github.com/user-attachments/assets/d6328f18-46c5-4bb7-a0d2-b7a5faa7cfac) <br>
+위와 같이 전체 회로를 구성합니다. <br>
+전원은 18650 배터리를 2S2P로 연결하여 사용합니다. <br>
+스텝다운 컨버터를 사용하여 ESP32-CAM에 5V 전원을 공급합니다. <br>
+서보모터 라인에 스텝다운 컨버터를 사용하여 5V 전원을 공급합니다. <br>
+2채널 DC모터드라이버 모듈을 통해 DC모터 4개를 제어합니다. <br>
+스텝업 컨버터를 사용하여 12V LED 라이트에 전원을 공급합니다. <br>
+ESP32-CAM으로 서보모터의 PWM신호를 생성하고, DC모터 드라이버를 제어하고, LED 릴레이를 스위칭합니다. <br>
+ESP32-CAM의 출력 핀은 아래와 같이 배정합니다.
 | ESP32-CAM 핀 | 연결 부품 |
 |-------|-------|
 | GPIO 12 | 서보모터1 Pan(좌우 회전) |
@@ -69,29 +70,29 @@
 <br>
 
 :pushpin: **2. 자동차에 필요한 부품 준비하기 (1대분 기준)** <br>
-&emsp; `18650 배터리 (3.7V 2200mAh)` 4개 <br>
-&emsp; `전원 똑딱이 스위치` 1개 <br>
-&emsp; `DC-DC 스텝다운 컨버터(LM2596)` 2개 <br>
-&emsp; `MCU(ESP32-CAM)` 1개 <br>
-&emsp; `ESP32-CAM WiFi 안테나 (3dBi)` 1개 -> `6dBi로 교체` <br>
-&emsp; `팬틸트용 SG90 서보모터` 2개 <br>
-&emsp; `2채널 DC모터 드라이버(DRV8833)` 1개 <br>
-&emsp; `아두이노 바퀴용 DC모터` 4개 <br>
-&emsp; `DC-DC 스텝업 컨버터(XL6009)` 1개 <br>
-&emsp; `3.3V 릴레이` 1개 <br>
-&emsp; `12V LED 라이트` 1개 <br><br>
+`18650 배터리 (3.7V 2200mAh)` 4개 <br>
+`전원 똑딱이 스위치` 1개 <br>
+`DC-DC 스텝다운 컨버터(LM2596)` 2개 <br>
+`MCU(ESP32-CAM)` 1개 <br>
+`ESP32-CAM WiFi 안테나 (3dBi)` 1개 -> `6dBi로 교체` <br>
+`팬틸트용 SG90 서보모터` 2개 <br>
+`2채널 DC모터 드라이버(DRV8833)` 1개 <br>
+`아두이노 바퀴용 DC모터` 4개 <br>
+`DC-DC 스텝업 컨버터(XL6009)` 1개 <br>
+`3.3V 릴레이` 1개 <br>
+`12V LED 라이트` 1개 <br><br>
 
 ***
 ### 2. 펌웨어 개발
 :memo: **1. 아두이노 IDE를 이용하여, HTTP 요청으로 카메라 스트리밍, 서보모터, DC모터, 릴레이를 제어하는 코드를 구현하고, ESP32-CAM에 업로드합니다.** <br>
 :warning: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
-&emsp; `-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
-&emsp; `-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
-&emsp; `-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
-&emsp; `-ESP32-CAM 부팅 시 ESP32-CAM의 ip주소와 MAC주소를 JSON으로 변환하여 스프링부트 서버로 전송합니다.` <br>
-&emsp; `-스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 이미지로 디코딩하여 로컬에 저장합니다.` <br>
-&emsp; `-스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체를 생성하여 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드에서 처리합니다.` <br>
-&emsp; `-아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
+`-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
+`-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
+`-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
+`-ESP32-CAM 부팅 시 ESP32-CAM의 ip주소와 MAC주소를 JSON으로 변환하여 스프링부트 서버로 전송합니다.` <br>
+`-스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 이미지로 디코딩하여 로컬에 저장합니다.` <br>
+`-스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체를 생성하여 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드에서 처리합니다.` <br>
+`-아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
 
 #### ESP32CAM.ino
 ```C++
@@ -495,42 +496,42 @@ void startServer() {
 
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
-&emsp; 테스트는 Talend API Tester를 이용하여 ESP32-CAM의 ip주소에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
+테스트는 Talend API Tester를 이용하여 ESP32-CAM의 ip주소에 POST 요청을 보내고 각 부품들이 제대로 동작하는지 확인합니다. <br>
 
-&emsp; 1. 카메라 웹 스트리밍 테스트 <br>
-&emsp; ![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
-&emsp; 2. 서보모터 제어 테스트 <br>
-&emsp; ![servotest](https://github.com/user-attachments/assets/59318f70-2557-4b74-91ca-4afb1a7bbb75) <br><br>
-&emsp; 3. DC모터 제어 테스트 <br>
-&emsp; ![dcmotortest](https://github.com/user-attachments/assets/92a1e8cf-5550-4d74-b90c-69e64474db42) <br><br>
-&emsp; 4. 릴레이 제어 테스트 <br>
-&emsp; ![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
+1. 카메라 웹 스트리밍 테스트 <br>
+![cameratest](https://github.com/user-attachments/assets/d7080d2d-62c9-4913-bc05-ae7e466bfb21) <br><br>
+2. 서보모터 제어 테스트 <br>
+![servotest](https://github.com/user-attachments/assets/59318f70-2557-4b74-91ca-4afb1a7bbb75) <br><br>
+3. DC모터 제어 테스트 <br>
+![dcmotortest](https://github.com/user-attachments/assets/92a1e8cf-5550-4d74-b90c-69e64474db42) <br><br>
+4. 릴레이 제어 테스트 <br>
+![relaytest](https://github.com/user-attachments/assets/78b181ca-0f65-4672-826d-97b245f1c102) <br><br>
 
 :nut_and_bolt: **3. 조립하기** <br>
-&emsp; 1. 프레임을 설계하여 알루미늄 가공업체에 제작을 의뢰합니다. <br>
-&emsp; ![프레임2](https://github.com/user-attachments/assets/075c931a-939c-4e1c-a381-135b272d2536) <br><br>
-&emsp; 2. 2대 조립하기(약 4시간 소요) <br>
-&emsp; ![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
-&emsp; 3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
-&emsp; Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
-&emsp; (왼쪽 : 핸드폰으로 촬영한 화면, 오른쪽 : RC카 카메라 화면) <br>
-&emsp; ![조립테스트 영상 2개 합친것 용량압축](https://github.com/user-attachments/assets/b7a05f9c-ae1a-4dd6-bbd7-6c5992a32da3) <br>
+1. 프레임을 설계하여 알루미늄 가공업체에 제작을 의뢰합니다. <br>
+![프레임2](https://github.com/user-attachments/assets/075c931a-939c-4e1c-a381-135b272d2536) <br><br>
+2. 2대 조립하기(약 4시간 소요) <br>
+![조립중 및 2대조립완료](https://github.com/user-attachments/assets/2443ac34-37a4-4cfe-bd1c-d2d19f63c9cc) <br><br>
+3. 조립 완료 후 잘 움직이는지 테스트합니다. <br>
+Talend API Tester로 ESP32-CAM ip주소에 POST 요청을 보내고 각 부품들이 제대로 움직이는지 확인합니다. <br>
+(왼쪽 : 핸드폰으로 촬영한 화면, 오른쪽 : RC카 카메라 화면) <br>
+![조립테스트 영상 2개 합친것 용량압축](https://github.com/user-attachments/assets/b7a05f9c-ae1a-4dd6-bbd7-6c5992a32da3) <br>
 <br><br>
 
 ***
 ### 3. 백엔드 개발
 :seedling: **1. 프로젝트 생성하기** <br>
-&emsp; start.spring.io에서 스프링부트 프로젝트를 생성합니다. <br>
-&emsp; Project : `Gradle - Groovy` <br>
-&emsp; Language : `Java` <br>
-&emsp; Spring Boot : `3.4.3` <br>
-&emsp; Name : `SpringBootApi` <br>
-&emsp; Packaging : `Jar` <br>
-&emsp; Java : `23` <br>
-&emsp; Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br><br>
+start.spring.io에서 스프링부트 프로젝트를 생성합니다. <br>
+Project : `Gradle - Groovy` <br>
+Language : `Java` <br>
+Spring Boot : `3.4.3` <br>
+Name : `SpringBootApi` <br>
+Packaging : `Jar` <br>
+Java : `23` <br>
+Dependencies : `Spring Data JPA`, `Spring Web`, `Lombok`, `Mustache`, `H2 Database`, `PostgreSQL Driver` <br><br>
 
 :blue_book: **2. Entity 정의하기** <br>
-&emsp; DB에 RC카 정보를 저장하기 위한 Entity를 정의합니다. <br>
+DB에 RC카 정보를 저장하기 위한 Entity를 정의합니다. <br>
 #### ESP32-CAM Device Table
 | id | macAddress | deviceName | deviceIp |
 |-------|-------|-------|-------|
@@ -597,9 +598,9 @@ class Esp32CamImage { // ESP32-CAM이 찍은 사진
 <br>
 
 :books: **3. Repository 인터페이스 구현하기** <br>
-&emsp; Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
-&emsp; Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 조회하는 쿼리 메서드를 추가합니다. <br>
-&emsp; Esp32CamImageRepo에는 몇 개의 이미지가 저장되어 있는지 카운트하는 메서드를 추가합니다. <br>
+Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
+Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 조회하는 쿼리 메서드를 추가합니다. <br>
+Esp32CamImageRepo에는 몇 개의 이미지가 저장되어 있는지 카운트하는 메서드를 추가합니다. <br>
 #### Esp32CamInfo.java
 ```Java
 interface Esp32CamDeviceRepo extends JpaRepository<Esp32CamDevice, Long> {
@@ -613,7 +614,7 @@ interface Esp32CamImageRepo extends JpaRepository<Esp32CamImage, Long> {
 <br>
 
 :airplane: **4. DTO 구현하기** <br>
-&emsp; 데이터를 주고받기 위한 DTO를 구현합니다. <br>
+데이터를 주고받기 위한 DTO를 구현합니다. <br>
 #### Esp32CamInfo.java
 ```Java
 @AllArgsConstructor
@@ -642,7 +643,7 @@ class Esp32CamImageDTO {
 <br>
 
 :arrow_forward: **5. Service 구현하기** <br>
-&emsp; 서비스 클래스를 생성하여 RC카 등록, 조회, 정보 수정, 특정 RC카 삭제, 서보모터, DC모터, 릴레이 제어, 사진 찍기, 전체 이미지 조회하기 기능을 처리하는 로직을 구현합니다. <br>
+서비스 클래스를 생성하여 RC카 등록, 조회, 정보 수정, 특정 RC카 삭제, 서보모터, DC모터, 릴레이 제어, 사진 찍기, 전체 이미지 조회하기 기능을 처리하는 로직을 구현합니다. <br>
 
 #### RCCarService.java
 ```Java
@@ -786,7 +787,7 @@ public class RCCarService {
 ```
 
 :twisted_rightwards_arrows: **6. RestController 구현하기** <br>
-&emsp; 컨트롤러를 구현합니다. <br>
+컨트롤러를 구현합니다. <br>
 | 기능 | HTTP 메서드 | URL | 요청 데이터 |
 |-------|-------|-------|-------|
 | id로 장치 조회하기 | GET | /api/rc/device/{id} | X |
@@ -902,7 +903,7 @@ public class RCCarController {
 <br>
 
 :mag_right: **7. H2 DB 연동 및 CRUD 동작 확인하기** <br>
-&emsp; `application.properties`에 H2 DB 관련 설정들을 추가하고 CRUD 기능을 테스트합니다. <br>
+`application.properties`에 H2 DB 관련 설정들을 추가하고 CRUD 기능을 테스트합니다. <br>
 ```Java
 spring.datasource.url=jdbc:h2:mem:testdb // h2 db 주소 고정
 spring.h2.console.enabled=true // h2콘솔 활성화
@@ -911,11 +912,11 @@ spring.datasource.username=sa
 spring.datasource.password=password
 spring.jpa.hibernate.ddl-auto=update
 ```
-&emsp; Talend API Tester로 컨트롤러에서 구현한 엔드포인트에 HTTP 요청들을 보내고, H2 Console로 제대로 처리되었는지 확인합니다. <br>
-&emsp; ![h2db 테스트](https://github.com/user-attachments/assets/028480b7-872e-4a78-906b-17d1c2b7e211) <br>
+Talend API Tester로 컨트롤러에서 구현한 엔드포인트에 HTTP 요청들을 보내고, H2 Console로 제대로 처리되었는지 확인합니다. <br>
+![h2db 테스트](https://github.com/user-attachments/assets/028480b7-872e-4a78-906b-17d1c2b7e211) <br>
 
 :floppy_disk: **8. PostgreSQL DB 전환** <br>
-&emsp; PostgreSQL DB에서 프로젝트를 생성한 후, `application.properties`에 PostgreSQL 설정을 추가하여 H2 DB 대신 PostgreSQL DB를 연결합니다. <br>
+PostgreSQL DB에서 프로젝트를 생성한 후, `application.properties`에 PostgreSQL 설정을 추가하여 H2 DB 대신 PostgreSQL DB를 연결합니다. <br>
 ```Java
 spring.datasource.url=jdbc:postgresql://localhost:5432/RCCamBot
 spring.datasource.driverClassName=org.postgresql.Driver
@@ -925,41 +926,41 @@ spring.datasource.data=classpath:/data.sql
 spring.datasource.initialization-mode=always
 spring.jpa.hibernate.ddl-auto=update
 ```
-&emsp; ![postgresqldb 전환](https://github.com/user-attachments/assets/f393c548-3284-43e2-8f41-1e11d0938d16) <br>
+![postgresqldb 전환](https://github.com/user-attachments/assets/f393c548-3284-43e2-8f41-1e11d0938d16) <br>
 
 :satellite: **9. ESP32-CAM 통신 테스트** <br>
-&emsp; RC카 전원 On시(ESP32-CAM 부팅시) DB에 디바이스 정보가 등록되는지 확인합니다. <br>
-&emsp; `MAC주소는 고유하기 때문에 이후에 재부팅시 라우터에서 다른 ip주소를 할당받아도 ip주소만 새로 갱신됩니다.` <br>
-&emsp; `RC카 이름은 안드로이드 앱에서 사용자가 설정하여 저장할 수 있습니다.` <br>
-&emsp; ![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br><br>
-&emsp; RC카 2대 모두 등록한 후 사진을 찍고 로컬에 잘 저장되는지 확인합니다. <br>
-&emsp; ![2대 등록](https://github.com/user-attachments/assets/1506fccd-5dc2-4464-8342-f3b601c9c0a5) <br>
-&emsp; ![2대 사진찍기 테스트](https://github.com/user-attachments/assets/e7f08fa1-cac4-476a-a995-97f57c8115c5) <br>
-&emsp; ![이미지저장테스트](https://github.com/user-attachments/assets/d670dcb8-43a1-4301-bf6b-26d10e787ef4) <br><br>
+RC카 전원 On시(ESP32-CAM 부팅시) DB에 디바이스 정보가 등록되는지 확인합니다. <br>
+`MAC주소는 고유하기 때문에 이후에 재부팅시 라우터에서 다른 ip주소를 할당받아도 ip주소만 새로 갱신됩니다.` <br>
+`RC카 이름은 안드로이드 앱에서 사용자가 설정하여 저장할 수 있습니다.` <br>
+![전원 온시 디비에 디바이스정보 등록 용량압축](https://github.com/user-attachments/assets/e8038c4f-2f74-4604-9466-a6a1b1d82846) <br><br>
+RC카 2대 모두 등록한 후 사진을 찍고 로컬에 잘 저장되는지 확인합니다. <br>
+![2대 등록](https://github.com/user-attachments/assets/1506fccd-5dc2-4464-8342-f3b601c9c0a5) <br>
+![2대 사진찍기 테스트](https://github.com/user-attachments/assets/e7f08fa1-cac4-476a-a995-97f57c8115c5) <br>
+![이미지저장테스트](https://github.com/user-attachments/assets/d670dcb8-43a1-4301-bf6b-26d10e787ef4) <br><br>
 
 
 ***
 ### 4. 안드로이드앱 개발
 :pager: **1. UI 구성하기** <br>
 ### activity_main.xml
-&emsp; ![메인화면](https://github.com/user-attachments/assets/a7792ca7-bd3b-4d7e-9aad-02559bf2cd5c) <br>
-&emsp; 메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼과 찍은 사진들을 조회하는 버튼으로 구성합니다. <br><br>
+![메인화면](https://github.com/user-attachments/assets/a7792ca7-bd3b-4d7e-9aad-02559bf2cd5c) <br>
+메인화면은 RC카의 영상을 스트리밍하는 웹뷰와, RC카의 이동 제어 및 카메라 방향 제어, 라이트 On/Off, 사진 촬영 버튼과 찍은 사진들을 조회하는 버튼으로 구성합니다. <br><br>
 
 ### activity_rccar.xml
-&emsp; ![RC카 설정화면](https://github.com/user-attachments/assets/db5bf7f9-dd9c-428f-8bf4-6453d42642e0) <br>
-&emsp; `RC카 설정` 버튼을 누르면 RC카 리스트가 나오도록 합니다. <br>
-&emsp; 이 화면에서는 `RC카 찾기` 버튼을 눌러 DB에 등록되어 있는 RC카 정보를 가져오고, RC카에 ID를 설정하여 저장하고 관리할 수 있습니다. <br><br>
+![RC카 설정화면](https://github.com/user-attachments/assets/db5bf7f9-dd9c-428f-8bf4-6453d42642e0) <br>
+`RC카 설정` 버튼을 누르면 RC카 리스트가 나오도록 합니다. <br>
+이 화면에서는 `RC카 찾기` 버튼을 눌러 DB에 등록되어 있는 RC카 정보를 가져오고, RC카에 ID를 설정하여 저장하고 관리할 수 있습니다. <br><br>
 
 ### detected_rccar_item.xml
-&emsp; ![감지된 RC카 리스트](https://github.com/user-attachments/assets/8962886b-1c21-4340-b50f-24221f544b6e) <br>
-&emsp; `등록 가능한 RC카` 리스트뷰에는 이 아이템이 모델링되며, `RC카 찾기` 버튼을 눌렀을 때 DB에 저장되어 있는 RC카가 나옵니다. <br><br>
+![감지된 RC카 리스트](https://github.com/user-attachments/assets/8962886b-1c21-4340-b50f-24221f544b6e) <br>
+`등록 가능한 RC카` 리스트뷰에는 이 아이템이 모델링되며, `RC카 찾기` 버튼을 눌렀을 때 DB에 저장되어 있는 RC카가 나옵니다. <br><br>
 
 ### rccar_item.xml
-&emsp; ![저장된 RC카 리스트](https://github.com/user-attachments/assets/8eaa5115-ed7a-4f8c-9d13-8e93379b5bc6) <br>
-&emsp; `저장된 RC카` 리스트뷰에는 이 아이템이 모델링되며, `등록 가능한 RC카` 리스트에서 저장한 RC카가 등록됩니다. <br><br>
+![저장된 RC카 리스트](https://github.com/user-attachments/assets/8eaa5115-ed7a-4f8c-9d13-8e93379b5bc6) <br>
+`저장된 RC카` 리스트뷰에는 이 아이템이 모델링되며, `등록 가능한 RC카` 리스트에서 저장한 RC카가 등록됩니다. <br><br>
 <br>
 
-&emsp; intent를 이용하여 메인화면에서 `RC카 찾기`버튼을 누르면 RC카 설정 창이 뜨도록 합니다. <br>
+intent를 이용하여 메인화면에서 `RC카 찾기`버튼을 누르면 RC카 설정 창이 뜨도록 합니다. <br>
 ### MainActivity.java
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -990,7 +991,7 @@ public class MainActivity extends AppCompatActivity {
 ```
 <br>
 
-&emsp; 리스트뷰와 리스트아이템을 연결하기 위한 어댑터들을 작성하고, 더미데이터를 추가하여 제대로 모델링되는지 확인합니다. <br>
+리스트뷰와 리스트아이템을 연결하기 위한 어댑터들을 작성하고, 더미데이터를 추가하여 제대로 모델링되는지 확인합니다. <br>
 ### RCCarSettingDialog.java
 ```java
 public class RCCarSettingDialog extends AppCompatDialogFragment {
@@ -1080,13 +1081,13 @@ public class SavedRCCarAdapter extends ArrayAdapter<String> {
     }
 }
 ```
-&emsp; ![UI디자인](https://github.com/user-attachments/assets/d370929c-353d-4b9c-91e4-26042203bd78) <br><br>
+![UI디자인](https://github.com/user-attachments/assets/d370929c-353d-4b9c-91e4-26042203bd78) <br><br>
 
 
 :ticket: **2. Retrofit 설정하기** <br>
-&emsp; 스프링부트 서버와 통신하기 위해 Retrofit을 사용합니다. <br><br>
+스프링부트 서버와 통신하기 위해 Retrofit을 사용합니다. <br><br>
 
-&emsp; Retrofit을 사용하기 위해서 `build.gradle.kts`의 dependencies에 레트로핏 의존성을 추가하고 설치합니다. <br>
+Retrofit을 사용하기 위해서 `build.gradle.kts`의 dependencies에 레트로핏 의존성을 추가하고 설치합니다. <br>
 ### build.gradle.kts
 ```java
 implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -1095,7 +1096,7 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
 <br>
 
-&emsp; `AndroidManifest.xml`에 설정을 추가합니다. <br>
+`AndroidManifest.xml`에 설정을 추가합니다. <br>
 ### AndroidManifest.xml
 ```java
 <uses-permission android:name="android.permission.INTERNET" />
@@ -1106,12 +1107,12 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     ... >
 ```
 
-&emsp; `<uses-permission android:name="android.permission.INTERNET" />` : 앱이 인터넷에 연결할 수 있게 허용하는 권한으로 GET, POST 등의 API 요청을 보내기 위해 필요합니다. <br>
-&emsp; `android:usesCleartextTraffic="true"` : 안드로이드 9.0 이상에서는 기본적으로 HTTPS만 허용하고 HTTP를 차단하는데, 이 속성을 true로 설정하면 HTTP 요청을 보낼 수 있습니다. <br><br>
+`<uses-permission android:name="android.permission.INTERNET" />` : 앱이 인터넷에 연결할 수 있게 허용하는 권한으로 GET, POST 등의 API 요청을 보내기 위해 필요합니다. <br>
+`android:usesCleartextTraffic="true"` : 안드로이드 9.0 이상에서는 기본적으로 HTTPS만 허용하고 HTTP를 차단하는데, 이 속성을 true로 설정하면 HTTP 요청을 보낼 수 있습니다. <br><br>
 
 :artificial_satellite: **3. Retrofit API Service와 Retrofit Client 작성하기** <br>
-&emsp; 스프링부트와 데이터를 주고받기 위한 DTO를 작성합니다. <br>
-&emsp; Retrofit에는 Lombok이 없으므로 생성자와 Getter, Setter 등 필요한 메서드를 직접 작성합니다. <br>
+스프링부트와 데이터를 주고받기 위한 DTO를 작성합니다. <br>
+Retrofit에는 Lombok이 없으므로 생성자와 Getter, Setter 등 필요한 메서드를 직접 작성합니다. <br>
 ### Esp32CamDeviceDTO.java
 ```java
 public class Esp32CamDeviceDTO {
@@ -1190,7 +1191,7 @@ public class Esp32CamDeviceDTO {
 
 <br>
 
-&emsp; 스프링부트의 컨트롤러에 대응되는 레트로핏 서비스 인터페이스를 작성합니다. <br>
+스프링부트의 컨트롤러에 대응되는 레트로핏 서비스 인터페이스를 작성합니다. <br>
 ### RCCarApiService.java
 ```java
 public interface RCCarApiService {
@@ -1227,7 +1228,7 @@ public interface RCCarApiService {
 
 <br>
 
-&emsp; 레트로핏 객체를 생성하는 레트로핏 클라이언트를 작성합니다. <br>
+레트로핏 객체를 생성하는 레트로핏 클라이언트를 작성합니다. <br>
 ### RetrofitClient.java
 ```java
 public class RetrofitClient {
@@ -1254,7 +1255,7 @@ public class RetrofitClient {
 
 :repeat: **4. 스프링부트 서버 DB에서 RC카 정보 가져오고(GET) DB에 RC카 정보 저장하기(POST)** <br>
 
-&emsp; RC카 설정창에서 `RC카 찾기`버튼을 눌렀을 시 레트로핏을 이용하여 스프링부트 DB에서 RC카 정보를 가져옵니다. <br>
+RC카 설정창에서 `RC카 찾기`버튼을 눌렀을 시 레트로핏을 이용하여 스프링부트 DB에서 RC카 정보를 가져옵니다. <br>
 ### RCCarSettingDialog.java
 ```java
 public class RCCarSettingDialog extends AppCompatDialogFragment {
@@ -1317,7 +1318,7 @@ public class RCCarSettingDialog extends AppCompatDialogFragment {
 
 <br>
 
-&emsp; `등록 가능한 RC카` 리스트뷰에 표시할 어댑터가 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 MAC주소를 가져와 getView()에서 표시합니다. <br>
+`등록 가능한 RC카` 리스트뷰에 표시할 어댑터가 Esp32CamDeviceDTO 객체를 사용하도록 수정하고, DTO의 Getter 메서드를 통해 MAC주소를 가져와 getView()에서 표시합니다. <br>
 ### DetectedRCCarAdapter.java
 ```java
 public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
@@ -1348,13 +1349,13 @@ public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 <br>
 
 
-&emsp; `RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카의 MAC주소가 불러와지는지 확인합니다. <br><br>
+`RC카 찾기`버튼을 눌렀을 시 스프링부트 DB에 있는 RC카의 MAC주소가 불러와지는지 확인합니다. <br><br>
 
-&emsp; ![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
-&emsp; ![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
+![데이터 가져오기](https://github.com/user-attachments/assets/a86ef1a4-1ebe-4b18-afd6-9bf92b547729) <br>
+![데이터 가져오기 성공](https://github.com/user-attachments/assets/21983c43-8934-43ec-ab07-9d76fff65b7b) <br><br>
 
-&emsp; `등록 가능한 RC카` 리스트에 불러와진 아이템의 `저장` 버튼을 눌렀을 시, 다이얼로그 창을 띄워 사용자에게 RC카 이름을 입력받아서 이를 DB에 저장하고, 이 이름을 `저장된 RC카` 리스트에 MAC주소와 함께 표시합니다. <br>
-&emsp; `저장된 RC카` 리스트에 있는 RC카 정보들은 SharedPreferences 객체를 사용하여 로컬에 저장하여 앱을 종료해도 유지됩니다. <br>
+`등록 가능한 RC카` 리스트에 불러와진 아이템의 `저장` 버튼을 눌렀을 시, 다이얼로그 창을 띄워 사용자에게 RC카 이름을 입력받아서 이를 DB에 저장하고, 이 이름을 `저장된 RC카` 리스트에 MAC주소와 함께 표시합니다. <br>
+`저장된 RC카` 리스트에 있는 RC카 정보들은 SharedPreferences 객체를 사용하여 로컬에 저장하여 앱을 종료해도 유지됩니다. <br>
 ### DetectedRCCarAdapter.java
 ```java
 public class DetectedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
@@ -1747,10 +1748,10 @@ public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
 ```
 
 <br>
-&emsp; RC카의 이름을 설정하고 앱과 DB에 저장되는지 확인합니다. <br><br>
+RC카의 이름을 설정하고 앱과 DB에 저장되는지 확인합니다. <br><br>
 
-&emsp; ![앱에서 DB에 RC카 이름저장 용량압축](https://github.com/user-attachments/assets/6267cf43-d6a4-4c74-9c45-0a221f04843b) <br>
-&emsp; ![앱에서 DB 저장성공](https://github.com/user-attachments/assets/84b86cba-171a-45a2-bf2b-f9b03afdbba4) <br><br>
+![앱에서 DB에 RC카 이름저장 용량압축](https://github.com/user-attachments/assets/6267cf43-d6a4-4c74-9c45-0a221f04843b) <br>
+![앱에서 DB 저장성공](https://github.com/user-attachments/assets/84b86cba-171a-45a2-bf2b-f9b03afdbba4) <br><br>
 
 :joystick: **5. 선택한 RC카 제어하기** <br>
 
