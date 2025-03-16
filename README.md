@@ -221,7 +221,7 @@ void setup() {
   // 카메라 해상도
   // (UXGA: 1600x1200, XGA: 1024x768, SVGA: 800x600, VGA: 640x480, CIF: 400x296, QVGA: 320x240, QQVGA: 160x120)
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_VGA;
+    config.frame_size = FRAMESIZE_CIF;  // 안드로이드앱 화면 크기랑 비슷한 해상도
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
@@ -1754,6 +1754,104 @@ RC카의 이름을 설정하고 앱과 DB에 저장되는지 확인합니다. <b
 ![앱에서 DB 저장성공](https://github.com/user-attachments/assets/84b86cba-171a-45a2-bf2b-f9b03afdbba4) <br><br>
 
 :joystick: **5. 선택한 RC카 제어하기** <br>
+저장된 RC카 리스트에서 `선택`버튼을 누르면 해당 아이템에 해당하는 DTO를 메인화면으로 가져와서 해당 RC카의 이름을 표시하고, 해당 RC카의 Ip주소에 GET요청을 보내서 웹뷰에 스트리밍을 합니다. <br>
+### SavedRCCarAdapter.java
+```java
+public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
+
+    ...
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+
+        ...
+
+        // RC카 선택 버튼
+        Button buttonSavedRCCarSelect = convertView.findViewById(R.id.buttonSavedRCCarSelect);
+        // RC카 선택 버튼 클릭 이벤트
+        buttonSavedRCCarSelect.setOnClickListener(v -> {
+            // 선택한 RC카 DTO 가져오기
+            Esp32CamDeviceDTO selectedDevice = getItem(position);
+
+            // Retrofit을 이용하여 최신 ip주소 가져오기
+            // RC카 재부팅시 ip주소가 변경될 수 있으므로 선택 버튼 누를때 최신으로 갱신시켜서 가져오기
+            RCCarApiService apiService = RetrofitClient.getClient(BASE_URL).create(RCCarApiService.class);
+            apiService.getDeviceById(selectedDevice.getId()).enqueue(new Callback<Esp32CamDeviceDTO>() {
+                @Override
+                public void onResponse(Call<Esp32CamDeviceDTO> call, Response<Esp32CamDeviceDTO> response) {
+                    if (response.isSuccessful()) {
+                        Esp32CamDeviceDTO updatedDevice = response.body();
+                        String updatedIp = updatedDevice.getDeviceIp();
+
+                        // 최신 ip주소로 SharedPreferences에 저장
+                        SharedPreferences sharedPreferences = getContext().getSharedPreferences("RC_CAR_PREFS", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("selectedDeviceName", updatedDevice.getDeviceName());
+                        editor.putString("selectedDeviceIp", updatedIp);
+                        editor.apply();
+
+                        // 메인화면으로 이동할때 RC카 이름과 ip주소를 intent로 전달
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        intent.putExtra("selectedDeviceName", updatedDevice.getDeviceName());
+                        intent.putExtra("selectedDeviceIp", updatedIp);
+                        getContext().startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Esp32CamDeviceDTO> call, Throwable t) {
+                    // 실패 처리
+                    Toast.makeText(getContext(), "IP 정보 가져오기 실패", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        return convertView;
+    }
+
+    ...
+
+}
+```
+
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
+
+    private WebView webView;
+    private TextView textViewSelectedRCCar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+        ...
+
+        // SharedPreferences에서 선택한 RC카 이름과 ip주소 가져오기
+        SharedPreferences sharedPreferences = getSharedPreferences("RC_CAR_PREFS", MODE_PRIVATE);
+        String selectedDeviceName = sharedPreferences.getString("selectedDeviceName", "선택된 RC카 없음");
+        String selectedDeviceIp = sharedPreferences.getString("selectedDeviceIp", "");
+
+        // 선택한 RC카 이름 표시
+        if (selectedDeviceName != null && selectedDeviceIp != null) {
+            textViewSelectedRCCar = findViewById(R.id.textViewSelectedRCCar);
+            textViewSelectedRCCar.setText(selectedDeviceName);
+        }
+
+        // 선택한 RC카 웹뷰 스트리밍
+        if (!selectedDeviceIp.isEmpty()) {
+            WebView webView = findViewById(R.id.webView);
+            webView.loadUrl("http://" + selectedDeviceIp + "/stream");
+        }
+    }
+}
+```
+
+<br>
+
+선택한 RC카 스트리밍 테스트 <br>
+
+![앱 스트리밍 성공 용량압축](https://github.com/user-attachments/assets/87457830-abab-4770-8d32-7b9f23f2c827) <br>
+
 
 <br><br>
 
