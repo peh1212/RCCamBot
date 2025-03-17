@@ -806,7 +806,7 @@ public class RCCarService {
 | 기능 | HTTP 요청 | 엔드포인트 | 요청 데이터 | 응답 데이터 |
 |-------|-------|-------|-------|-------|
 | id로 장치 조회하기 | GET | /api/rc/device/{id} | | Esp32CamDevice (JSON) |
-| 전체 RC카 조회하기 | GET | /api/rc/devices | | List<Esp32CamDeviceDTO> |
+| 전체 RC카 조회하기 | GET | /api/rc/devices | | `List<Esp32CamDeviceDTO>` |
 | RC카 등록하기 | POST | /api/rc/register | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar" } | Esp32CamDevice (JSON) |
 | RC카 수정하기 | PATCH | /api/rc/device/{id} | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName" } | Esp32CamDevice (JSON) |
 | RC카 삭제하기 | DELETE | /api/rc/device/{id} | | "장치 삭제 완료" |
