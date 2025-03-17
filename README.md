@@ -810,9 +810,9 @@ public class RCCarService {
 | RC카 등록하기 | POST | /api/rc/register | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar" } | Esp32CamDevice (JSON) |
 | RC카 수정하기 | PATCH | /api/rc/device/{id} | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName" } | Esp32CamDevice (JSON) |
 | RC카 삭제하기 | DELETE | /api/rc/device/{id} | | "장치 삭제 완료" |
-| 서보모터 제어 | POST | /api/rc/servo | { "servoId": 1, "angle": 10 } | "1번 서보모터 10도 이동" |
-| DC모터 제어 | POST | /api/rc/motor | { "command": 1 } | "RC카 전진" |
-| 릴레이 스위치 제어 | POST | /api/rc/relay | { "state": 1 } | "Relay ON" |
+| 서보모터 제어 | POST | /api/rc/servo | { "servoNum": 1, "angleIncrement": 10 } | "1번 서보모터 10도 이동" |
+| DC모터 제어 | POST | /api/rc/motor | { "motorState": 1 } | "RC카 전진" |
+| 릴레이 스위치 제어 | POST | /api/rc/relay | { "relayState": 1 } | "Relay ON" |
 | 이미지 저장하기 | POST | /api/rc/image/upload | { "macAddress": "xx:xx:xx", "image": "Base64String" } | "이미지 저장 완료: 경로" |
 | 이미지 가져오기 | GET | /api/rc/image | | [ { "id": "1", "imagePath": "경로", "deviceName": "MyCar" } ] |
 
@@ -874,22 +874,22 @@ public class RCCarController {
     // 서보모터 제어
     @PostMapping("/servo")
     public ResponseEntity<String> controlServo(@RequestBody Map<String, Integer> request) {
-        int servoId = request.get("servoId");
-        int angle = request.get("angle");
+        int servoId = request.get("servoNum");
+        int angle = request.get("angleIncrement");
         return ResponseEntity.ok(rcCarService.controlServo(servoId, angle));
     }
 
     // DC모터 제어
     @PostMapping("/motor")
     public ResponseEntity<String> controlMotor(@RequestBody Map<String, Integer> request) {
-        int command = request.get("command");
+        int command = request.get("motorState");
         return ResponseEntity.ok(rcCarService.controlMotor(command));
     }
 
     // LED 스위치 제어
     @PostMapping("/relay")
     public ResponseEntity<String> controlRelay(@RequestBody Map<String, Integer> request) {
-        int state = request.get("state");
+        int state = request.get("relayState");
         return ResponseEntity.ok(rcCarService.controlRelay(state));
     }
 
