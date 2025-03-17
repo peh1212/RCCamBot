@@ -221,7 +221,7 @@ void setup() {
   // 카메라 해상도
   // (UXGA: 1600x1200, XGA: 1024x768, SVGA: 800x600, VGA: 640x480, CIF: 400x296, QVGA: 320x240, QQVGA: 160x120)
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_CIF;  // 안드로이드앱 화면 크기랑 비슷한 해상도
+    config.frame_size = FRAMESIZE_CIF;
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
@@ -317,40 +317,53 @@ void handleStream(void* parameter) {
 
 // 서보모터 제어 함수
 void handleServo() {
-  if (server.hasArg("plain") == false) {
-    server.send(400, "text/plain", "Body not received");
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"Body not received\"}");
     return;
   }
+
   String body = server.arg("plain");
-  int servoNum, angleIncrement;
-  sscanf(body.c_str(), "%d %d", &servoNum, &angleIncrement);
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, body);
+
+  if (error) {
+    server.send(400, "application/json", "{\"error\":\"Invalid JSON format\"}");
+    return;
+  }
+
+  int servoNum = doc["servoNum"];
+  int angleIncrement = doc["angleIncrement"];
 
   if (servoNum == 1) {
     currentAngle1 += angleIncrement;
-    if (currentAngle1 < 0) currentAngle1 = 0;
-    if (currentAngle1 > 180) currentAngle1 = 180;
+    currentAngle1 = constrain(currentAngle1, 0, 180);
     servo1.write(currentAngle1);
-    Serial.printf("Servo %d moved to %d degrees\n", servoNum, currentAngle1);
   } else if (servoNum == 2) {
     currentAngle2 += angleIncrement;
-    if (currentAngle2 < 0) currentAngle2 = 0;
-    if (currentAngle2 > 180) currentAngle2 = 180;
+    currentAngle2 = constrain(currentAngle2, 0, 180);
     servo2.write(currentAngle2);
-    Serial.printf("Servo %d moved to %d degrees\n", servoNum, currentAngle2);
   }
 
-  server.send(200, "text/plain", "Servo moved");
+  server.send(200, "application/json", "{\"message\":\"Servo moved\"}");
 }
 
 // DC모터 제어 함수
 void handleMotor() {
-  if (server.hasArg("plain") == false) {
-    server.send(400, "text/plain", "Body not received");
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"Body not received\"}");
     return;
   }
+
   String body = server.arg("plain");
-  int motorState;
-  sscanf(body.c_str(), "%d", &motorState);
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, body);
+
+  if (error) {
+    server.send(400, "application/json", "{\"error\":\"Invalid JSON format\"}");
+    return;
+  }
+
+  int motorState = doc["motorState"];
 
   switch (motorState) {
     case 0: // 정지
@@ -391,26 +404,28 @@ void handleMotor() {
       break;
   }
 
-  server.send(200, "text/plain", "Motor state updated");
+  server.send(200, "application/json", "{\"message\":\"Motor state updated\"}");
 }
 
 // 릴레이 제어 함수
 void handleRelay() {
-  if (server.hasArg("plain") == false) {
-    server.send(400, "text/plain", "Body not received");
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"Body not received\"}");
     return;
   }
-  String body = server.arg("plain");
-  int relayState;
-  sscanf(body.c_str(), "%d", &relayState);
 
-  if (relayState == 1) {
-    digitalWrite(RELAY_PIN, HIGH);
-  } else {
-    digitalWrite(RELAY_PIN, LOW);
+  String body = server.arg("plain");
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, body);
+
+  if (error) {
+    server.send(400, "application/json", "{\"error\":\"Invalid JSON format\"}");
+    return;
   }
 
-  server.send(200, "text/plain", "Relay state updated");
+  int relayState = doc["relayState"];
+  digitalWrite(RELAY_PIN, relayState == 1 ? HIGH : LOW);
+  server.send(200, "application/json", "{\"message\":\"Relay state updated\"}");
 }
 
 // 캡쳐 함수
@@ -485,14 +500,13 @@ void startServer() {
   Serial.println("HTTP server started");
 }
 ```
-
-| 기능 | HTTP 요청 | Headers | 엔드포인트 | Body |  |
+| 기능 | HTTP 요청 | 엔드포인트 | 요청 데이터 | 응답 데이터 | 비고 |
 |-------|-------|-------|-------|-------|-------|
-| 스트리밍 | GET |  | /stream |  |  |
-| 이미지를 캡쳐하여 base64로 변환하여 MAC주소와 함께 스프링부트서버에 전송 | GET |  | /capture |  |  |
-| 서보모터 제어 | POST | Content-Type : text/plain | /servo | ex) 1 5  (1번 서보모터 각도 5도 이동) | (제어할 서보모터 번호) (서보모터 각도 변화량) |
-| DC모터 제어 | POST | Content-Type : text/plain | /motor | 0~4 | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
-| 릴레이 제어 | POST | Content-Type : text/plain | /relay | 0~1 | 0:Off, 1:On |
+| 스트리밍 | GET | /stream |  | MJPEG 스트리밍 | |
+| 캡쳐 | GET | /capture |  | "이미지 저장 완료: 경로" 또는 "Camera capture failed" | 이미지를 캡쳐하여 base64로 변환하여 MAC주소와 함께 스프링부트서버에 전송 |
+| 서보모터 제어 | POST | /servo | {"servoNum": 1, "angleIncrement": 10} | {"message": "Servo moved"} | (제어할 서보모터 번호, 1 : 카메라 좌우 회전, 2 : 카메라 상하 회전 ) (서보모터 각도 변화량) |
+| DC모터 제어 | POST | /motor | {"motorState": 1} | {"message": "Motor state updated"} | 0:정지, 1:전진, 2:후진, 3:좌회전, 4:우회전 |
+| 릴레이 제어 | POST | /relay | {"relayState": 1} | {"message": "Relay state updated"} | 0:Off, 1:On |
 
 
 :bulb: **2. ESP32-CAM에 코드를 업로드한 후, 배터리를 연결하여 전체 회로 점검 및 작동테스트를 합니다.** <br>
@@ -717,7 +731,7 @@ public class RCCarService {
 
     // 서보모터 제어
     public String controlServo(int servoId, int angle) {
-        return servoId + "번 서보모터 " + angle + "도로 이동";
+        return servoId + "번 서보모터 " + angle + "도 이동";
     }
 
     // DC모터 제어
@@ -788,18 +802,19 @@ public class RCCarService {
 
 :twisted_rightwards_arrows: **6. RestController 구현하기** <br>
 컨트롤러를 구현합니다. <br>
-| 기능 | HTTP 메서드 | URL | 요청 데이터 |
-|-------|-------|-------|-------|
-| id로 장치 조회하기 | GET | /api/rc/device/{id} | X |
-| RC카 등록하기 | POST | /api/rc/register | macAddress, ipAddress, deviceName |
-| 전체 RC카 조회하기 | GET | /api/rc/devices | X |
-| RC카 수정하기 | PATCH | /api/rc/device/{id} | macAddress, ipAddress, deviceName |
-| RC카 삭제하기 | DELETE | /api/rc/device/{id} | X |
-| 서보모터 제어 | POST | /api/rc/servo | servoId, angle |
-| DC모터 제어 | POST | /api/rc/motor | 0~4 |
-| 릴레이 스위치 제어 | POST | /api/rc/relay | 0~1 |
-| 이미지 저장하기 | POST | /api/rc/image/upload | imageData |
-| 이미지 가져오기 | GET | /api/rc/image | X |
+
+| 기능 | HTTP 요청 | 엔드포인트 | 요청 데이터 | 응답 데이터 |
+|-------|-------|-------|-------|-------|
+| id로 장치 조회하기 | GET | /api/rc/device/{id} | | Esp32CamDevice (JSON) |
+| 전체 RC카 조회하기 | GET | /api/rc/devices | | List<Esp32CamDeviceDTO> |
+| RC카 등록하기 | POST | /api/rc/register | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar" } | Esp32CamDevice (JSON) |
+| RC카 수정하기 | PATCH | /api/rc/device/{id} | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName" } | Esp32CamDevice (JSON) |
+| RC카 삭제하기 | DELETE | /api/rc/device/{id} | | "장치 삭제 완료" |
+| 서보모터 제어 | POST | /api/rc/servo | { "servoId": 1, "angle": 10 } | "1번 서보모터 10도 이동" |
+| DC모터 제어 | POST | /api/rc/motor | { "command": 1 } | "RC카 전진" |
+| 릴레이 스위치 제어 | POST | /api/rc/relay | { "state": 1 } | "Relay ON" |
+| 이미지 저장하기 | POST | /api/rc/image/upload | { "macAddress": "xx:xx:xx", "image": "Base64String" } | "이미지 저장 완료: 경로" |
+| 이미지 가져오기 | GET | /api/rc/image | | [ { "id": "1", "imagePath": "경로", "deviceName": "MyCar" } ] |
 
 ### RCCarController.java
 ```Java
@@ -1918,6 +1933,9 @@ public class MainActivity extends AppCompatActivity {
           }
       });
 ```
+
+캡쳐버튼 테스트 <br>
+
 ![캡쳐기능 구현](https://github.com/user-attachments/assets/404ae8ef-3e8a-4d73-a5b5-8bd9da24ca8b) <br>
 ![캡쳐기능 구현 DB](https://github.com/user-attachments/assets/dd61cbbc-b721-48cc-9652-06f1bdbf48c2) <br><br>
 
