@@ -930,6 +930,7 @@ public class RCCarController {
         return ResponseEntity.ok(result);
     }
 
+    // 이미지 저장하기
     @PostMapping("/image/upload")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestBody Map<String, String> requestData) {
         String macAddress = requestData.get("macAddress");
@@ -2042,6 +2043,12 @@ public class MainActivity extends AppCompatActivity {
 ```
 
 LED 라이트 On/Off 스위치 테스트 <br>
+![릴레이제어 성공 용량압축](https://github.com/user-attachments/assets/76636eea-c07f-40a9-a116-0813abfa38ce) <br><br>
+
+<br>
+
+서보모터(카메라 방향) 제어하기 <br>
+
 
 
 
