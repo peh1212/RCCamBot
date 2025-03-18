@@ -748,9 +748,34 @@ public class RCCarService {
         return "RC카 " + action;
     }
 
-    // Light 제어
-    public String controlRelay(int state) {
-        return state == 1 ? "Relay ON" : "Relay OFF";
+    // 릴레이 제어
+    public String controlRelay(String macAddress, int relayState) {
+        // MAC 주소로 장치 조회
+        Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("해당 MAC 주소의 장치가 없습니다: " + macAddress));
+
+        // 장치의 IP 주소 가져오기
+        String deviceIp = device.getDeviceIp();
+
+        // HTTP POST 요청 보내기
+        try {
+            String url = "http://" + deviceIp + "/relay";
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"relayState\":" + relayState + "}"))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return "ESP32 릴레이 제어 성공: " + response.body();
+            } else {
+                return "ESP32 릴레이 제어 실패: " + response.statusCode();
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("ESP32에 요청 실패", e);
+        }
     }
 
     // RC카가 찍은 사진 저장하기 (MAC 주소 기반)
@@ -807,14 +832,14 @@ public class RCCarService {
 |-------|-------|-------|-------|-------|
 | id로 장치 조회하기 | GET | /api/rc/device/{id} | | Esp32CamDevice (JSON) |
 | 전체 RC카 조회하기 | GET | /api/rc/devices | | `List<Esp32CamDeviceDTO>` |
-| RC카 등록하기 | POST | /api/rc/register | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar" } | Esp32CamDevice (JSON) |
-| RC카 수정하기 | PATCH | /api/rc/device/{id} | { "macAddress": "xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName" } | Esp32CamDevice (JSON) |
-| RC카 삭제하기 | DELETE | /api/rc/device/{id} | | "장치 삭제 완료" |
-| 서보모터 제어 | POST | /api/rc/servo | { "servoNum": 1, "angleIncrement": 10 } | "1번 서보모터 10도 이동" |
-| DC모터 제어 | POST | /api/rc/motor | { "motorState": 1 } | "RC카 전진" |
-| 릴레이 스위치 제어 | POST | /api/rc/relay | { "relayState": 1 } | "Relay ON" |
-| 이미지 저장하기 | POST | /api/rc/image/upload | { "macAddress": "xx:xx:xx", "image": "Base64String" } | "이미지 저장 완료: 경로" |
-| 이미지 가져오기 | GET | /api/rc/image | | [ { "id": "1", "imagePath": "경로", "deviceName": "MyCar" } ] |
+| RC카 등록하기 | POST | /api/rc/register | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar"} | Esp32CamDevice (JSON) |
+| RC카 수정하기 | PATCH | /api/rc/device/{id} | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName"} | Esp32CamDevice (JSON) |
+| RC카 삭제하기 | DELETE | /api/rc/device/{id} | | {"message": "장치 삭제 완료"} |
+| 서보모터 제어 | POST | /api/rc/servo | {"servoNum": 1, "angleIncrement": 10} | "1번 서보모터 10도 이동" |
+| DC모터 제어 | POST | /api/rc/motor | {"motorState": 1} | "RC카 전진" |
+| 릴레이 제어 | POST | /api/rc/relay | {"macAddress": "xx:xx:xx:xx:xx:xx", "relayState": 1} | {"message": "Relay ON"} |
+| 이미지 저장하기 | POST | /api/rc/image/upload | {"macAddress": "xx:xx:xx:xx:xx:xx", "image": "Base64String"} | {"message": "이미지 저장 완료", "path": "/path/to/image.jpg"} |
+| 이미지 가져오기 | GET | /api/rc/image | | {"id": "1", "imagePath": "경로", "deviceName": "MyCar"} |
 
 ### RCCarController.java
 ```Java
@@ -866,9 +891,14 @@ public class RCCarController {
 
     // RC카 삭제하기
     @DeleteMapping("/device/{id}")
-    public ResponseEntity<String> deleteDevice(@PathVariable Long id) {
-        rcCarService.deleteDevice(id);
-        return ResponseEntity.ok("장치 삭제 완료");
+    public ResponseEntity<Map<String, String>> deleteDevice(@PathVariable Long id) {
+        try {
+            rcCarService.deleteDevice(id);
+            return ResponseEntity.ok(Map.of("message", "장치 삭제 완료"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "해당 ID의 장치가 없습니다."));
+        }
     }
 
     // 서보모터 제어
@@ -886,25 +916,37 @@ public class RCCarController {
         return ResponseEntity.ok(rcCarService.controlMotor(command));
     }
 
-    // LED 스위치 제어
+    // 릴레이 제어
     @PostMapping("/relay")
-    public ResponseEntity<String> controlRelay(@RequestBody Map<String, Integer> request) {
-        int state = request.get("relayState");
-        return ResponseEntity.ok(rcCarService.controlRelay(state));
+    public ResponseEntity<String> controlRelay(@RequestBody Map<String, Object> request) {
+        String macAddress = (String) request.get("macAddress");
+        Integer relayState = (Integer) request.get("relayState");
+
+        if (macAddress == null || relayState == null) {
+            return ResponseEntity.badRequest().body("macAddress와 relayState 필드가 필요합니다.");
+        }
+
+        String result = rcCarService.controlRelay(macAddress, relayState);
+        return ResponseEntity.ok(result);
     }
 
-    // 이미지 저장하기
     @PostMapping("/image/upload")
-    public ResponseEntity<String> uploadImage(@RequestBody Map<String, String> requestData) {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestBody Map<String, String> requestData) {
         String macAddress = requestData.get("macAddress");
         String base64Image = requestData.get("image");
 
         if (macAddress == null || base64Image == null) {
-            return ResponseEntity.badRequest().body("MAC 주소 또는 이미지 데이터가 누락되었습니다.");
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "MAC 주소 또는 이미지 데이터가 누락되었습니다."));
         }
 
-        String savedFilePath = rcCarService.saveImage(macAddress, base64Image);
-        return ResponseEntity.ok("이미지 저장 완료: " + savedFilePath);
+        try {
+            String savedFilePath = rcCarService.saveImage(macAddress, base64Image);
+            return ResponseEntity.ok(Map.of("message", "이미지 저장 완료", "path", savedFilePath));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", "이미지 저장 중 문제가 발생했습니다.", "details", e.getMessage()));
+        }
     }
 
     // 모든 이미지 가져오기
@@ -1233,7 +1275,7 @@ public interface RCCarApiService {
 
     // 릴레이 제어
     @POST("/api/rc/relay")
-    Call<String> controlRelay(@Body Map<String, Integer> request);
+    Call<String> controlRelay(@Body Map<String, Object> request);
 
     // 모든 이미지 조회하기
     @GET("/api/rc/image")
@@ -1796,18 +1838,21 @@ public class SavedRCCarAdapter extends ArrayAdapter<Esp32CamDeviceDTO> {
                 public void onResponse(Call<Esp32CamDeviceDTO> call, Response<Esp32CamDeviceDTO> response) {
                     if (response.isSuccessful()) {
                         Esp32CamDeviceDTO updatedDevice = response.body();
+                        String updatedMac = updatedDevice.getMacAddress();
                         String updatedIp = updatedDevice.getDeviceIp();
 
                         // 최신 ip주소로 SharedPreferences에 저장
                         SharedPreferences sharedPreferences = getContext().getSharedPreferences("RC_CAR_PREFS", MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("selectedDeviceName", updatedDevice.getDeviceName());
+                        editor.putString("selectedDeviceMac", updatedMac);
                         editor.putString("selectedDeviceIp", updatedIp);
                         editor.apply();
 
                         // 메인화면으로 이동할때 RC카 이름과 ip주소를 intent로 전달
                         Intent intent = new Intent(getContext(), MainActivity.class);
                         intent.putExtra("selectedDeviceName", updatedDevice.getDeviceName());
+                        intent.putExtra("selectedDeviceMac", updatedMac);
                         intent.putExtra("selectedDeviceIp", updatedIp);
                         getContext().startActivity(intent);
                     }
@@ -1844,6 +1889,7 @@ public class MainActivity extends AppCompatActivity {
         // SharedPreferences에서 선택한 RC카 이름과 ip주소 가져오기
         SharedPreferences sharedPreferences = getSharedPreferences("RC_CAR_PREFS", MODE_PRIVATE);
         String selectedDeviceName = sharedPreferences.getString("selectedDeviceName", "선택된 RC카 없음");
+        String selectedDeviceMac = sharedPreferences.getString("selectedDeviceMac", "");
         String selectedDeviceIp = sharedPreferences.getString("selectedDeviceIp", "");
 
         // 선택한 RC카 이름 표시
@@ -1866,6 +1912,8 @@ public class MainActivity extends AppCompatActivity {
 선택한 RC카 스트리밍 테스트 <br>
 
 ![앱 스트리밍 성공 용량압축](https://github.com/user-attachments/assets/87457830-abab-4770-8d32-7b9f23f2c827) <br><br>
+
+<br>
 
 캡쳐버튼 구현하기 <br>
 ### MainActivity.java
@@ -1938,6 +1986,64 @@ public class MainActivity extends AppCompatActivity {
 
 ![캡쳐기능 구현](https://github.com/user-attachments/assets/404ae8ef-3e8a-4d73-a5b5-8bd9da24ca8b) <br>
 ![캡쳐기능 구현 DB](https://github.com/user-attachments/assets/dd61cbbc-b721-48cc-9652-06f1bdbf48c2) <br><br>
+
+<br>
+
+LED 라이트 On/Off 스위치 구현하기 <br>
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+      ...
+
+      // 릴레이 스위치
+        switchRelay = findViewById(R.id.switchRelay);
+        // 릴레이 스위치 상태 변경 리스너
+        switchRelay.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            int relayState = isChecked ? 1 : 0;  // 0 : OFF, 1 : ON
+
+            if (!selectedDeviceMac.isEmpty()) { // MAC 주소 확인
+                // 레트로핏을 사용하여 POST 요청
+                RCCarApiService apiService = RetrofitClient.getClient("http://172.30.1.29:8080").create(RCCarApiService.class);
+
+                // JSON으로 전송할 데이터 Map에 담기
+                Map<String, Object> request = new HashMap<>();
+                request.put("macAddress", selectedDeviceMac); // SharedPreferences에서 가져온 MAC 주소
+                request.put("relayState", relayState);       // 스위치 상태
+
+                // 릴레이 제어 API 호출
+                apiService.controlRelay(request).enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        if (response.isSuccessful()) {
+                            // 릴레이 제어 성공
+                            Log.d("Relay Control", "Relay control successful : " + response.body());
+                        } else {
+                            // 릴레이 제어 실패
+                            Log.e("Relay Control", "Relay control failed : " + response.code());
+                            Log.e("Relay Control", "Response message : " + response.message());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        // 통신 실패
+                        Log.e("Relay Control", "Request failed: " + t.getMessage());
+                    }
+                });
+            } else {
+                // MAC 주소가 없을 경우
+                Toast.makeText(this, "선택된 RC카의 MAC 주소가 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+```
+
+LED 라이트 On/Off 스위치 테스트 <br>
+
+
 
 <br><br>
 
