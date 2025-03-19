@@ -1294,7 +1294,7 @@ public interface RCCarApiService {
 
     // 서보모터 제어
     @POST("/api/rc/servo")
-    Call<String> controlServo(@Body Map<String, Integer> request);
+    Call<String> controlServo(@Body Map<String, Object> request);
 
     // DC모터 제어
     @POST("/api/rc/motor")
@@ -2034,7 +2034,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (!selectedDeviceMac.isEmpty()) { // MAC 주소 확인
                 // 레트로핏을 사용하여 POST 요청
-                RCCarApiService apiService = RetrofitClient.getClient("http://172.30.1.29:8080").create(RCCarApiService.class);
+                RCCarApiService apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
 
                 // JSON으로 전송할 데이터 Map에 담기
                 Map<String, Object> request = new HashMap<>();
@@ -2074,8 +2074,67 @@ LED 라이트 On/Off 스위치 테스트 <br>
 <br>
 
 서보모터(카메라 방향) 제어하기 <br>
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
+      ...
+
+        // 카메라 각도회전 버튼
+        buttonServoLeft = findViewById(R.id.buttonServoLeft);
+        buttonServoRight = findViewById(R.id.buttonServoRight);
+        buttonServoTop = findViewById(R.id.buttonServoTop);
+        buttonServoBottom = findViewById(R.id.buttonServoBottom);
+        // 카메라 각도회전 버튼 클릭 리스너
+        buttonServoLeft.setOnClickListener(v -> sendServoRequest(selectedDeviceMac, 1, 10)); // 1번 서보모터(좌우) +10도(왼쪽) 이동
+        buttonServoRight.setOnClickListener(v -> sendServoRequest(selectedDeviceMac, 1, -10)); // 1번 서보모터(좌우) -10도(오른쪽) 이동
+        buttonServoTop.setOnClickListener(v -> sendServoRequest(selectedDeviceMac, 2, -10)); // 2번 서보모터(상하) -10도(위) 이동
+        buttonServoBottom.setOnClickListener(v -> sendServoRequest(selectedDeviceMac, 2, 10)); // 2번 서보모터(상하) +10도(아래) 이동
+      }
+
+    // Retrofit을 사용해 Spring Boot에 서보모터 제어 요청 보내기
+    private void sendServoRequest(String macAddress, int servoNum, int angleIncrement) {
+        // 레트로핏을 사용하여 POST 요청
+        RCCarApiService apiService = RetrofitClient.getClient("").create(RCCarApiService.class);
+
+        // JSON으로 전송할 데이터 Map에 담기
+        Map<String, Object> request = new HashMap<>();
+        request.put("macAddress", macAddress);
+        request.put("servoNum", servoNum);
+        request.put("angleIncrement", angleIncrement);
+
+        // 서보모터 제어 API 호출
+        apiService.controlServo(request).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    // 서보모터 제어 성공
+                    Log.d("Servo Control", "Servo control successful : " + response.body());
+                } else {
+                    // 서보모터 제어 실패
+                    Log.e("Servo Control", "Servo control failed : " + response.code());
+                    Log.e("Servo Control", "Response message : " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                // 통신 실패
+                Log.e("Servo Control", "Request failed: " + t.getMessage());
+            }
+        });
+    }
+```
+
+서보모터(카메라 방향) 제어 테스트 <br>
+![서보모터 제어 성공 용량압축](https://github.com/user-attachments/assets/e7a435ca-12c4-481f-8ee1-4576d57861af) <br><br>
+
+<br>
+
+DC모터(바퀴) 제어하기 <br>
 
 
 <br><br>
