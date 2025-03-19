@@ -730,8 +730,33 @@ public class RCCarService {
     }
 
     // 서보모터 제어
-    public String controlServo(int servoId, int angle) {
-        return servoId + "번 서보모터 " + angle + "도 이동";
+    public String controlServo(String macAddress, int servoNum, int angleIncrement) {
+        // MAC 주소로 ESP32 조회
+        Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("장치를 찾을 수 없습니다: " + macAddress));
+
+        // ESP32-CAM IP 주소 가져오기
+        String esp32Ip = device.getDeviceIp();
+
+        // ESP32에 POST 요청 보내기
+        try {
+            String url = "http://" + esp32Ip + "/servo"; // ESP32 엔드포인트
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"servoNum\":" + servoNum + "," + "\"angleIncrement\":" + angleIncrement + "}"))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return "ESP32 서보모터 제어 성공: " + response.body();
+            } else {
+                return "ESP32 서보모터 제어 실패: " + response.statusCode();
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("ESP32에 요청 실패", e);
+        }
     }
 
     // DC모터 제어
@@ -750,16 +775,16 @@ public class RCCarService {
 
     // 릴레이 제어
     public String controlRelay(String macAddress, int relayState) {
-        // MAC 주소로 장치 조회
+        // MAC 주소로 ESP32 조회
         Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
                 .orElseThrow(() -> new IllegalArgumentException("해당 MAC 주소의 장치가 없습니다: " + macAddress));
 
-        // 장치의 IP 주소 가져오기
+        // ESP32-CAM IP 주소 가져오기
         String deviceIp = device.getDeviceIp();
 
-        // HTTP POST 요청 보내기
+        // ESP32에 POST 요청 보내기
         try {
-            String url = "http://" + deviceIp + "/relay";
+            String url = "http://" + deviceIp + "/relay"; // ESP32 엔드포인트
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -835,7 +860,7 @@ public class RCCarService {
 | RC카 등록하기 | POST | /api/rc/register | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar"} | Esp32CamDevice (JSON) |
 | RC카 수정하기 | PATCH | /api/rc/device/{id} | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName"} | Esp32CamDevice (JSON) |
 | RC카 삭제하기 | DELETE | /api/rc/device/{id} | | {"message": "장치 삭제 완료"} |
-| 서보모터 제어 | POST | /api/rc/servo | {"servoNum": 1, "angleIncrement": 10} | "1번 서보모터 10도 이동" |
+| 서보모터 제어 | POST | /api/rc/servo | {"macAddress": "xx:xx:xx:xx:xx:xx", "servoNum": 1, "angleIncrement": -10} | {"message": "Servo moved"} |
 | DC모터 제어 | POST | /api/rc/motor | {"motorState": 1} | "RC카 전진" |
 | 릴레이 제어 | POST | /api/rc/relay | {"macAddress": "xx:xx:xx:xx:xx:xx", "relayState": 1} | {"message": "Relay ON"} |
 | 이미지 저장하기 | POST | /api/rc/image/upload | {"macAddress": "xx:xx:xx:xx:xx:xx", "image": "Base64String"} | {"message": "이미지 저장 완료", "path": "/path/to/image.jpg"} |
@@ -903,10 +928,14 @@ public class RCCarController {
 
     // 서보모터 제어
     @PostMapping("/servo")
-    public ResponseEntity<String> controlServo(@RequestBody Map<String, Integer> request) {
-        int servoId = request.get("servoNum");
-        int angle = request.get("angleIncrement");
-        return ResponseEntity.ok(rcCarService.controlServo(servoId, angle));
+    public ResponseEntity<String> controlServo(@RequestBody Map<String, Object> request) {
+        String macAddress = (String) request.get("macAddress");
+        Integer servoNum = (Integer) request.get("servoNum");
+        Integer angleIncrement = (Integer) request.get("angleIncrement");
+
+        // 서비스 호출
+        String result = rcCarService.controlServo(macAddress, servoNum, angleIncrement);
+        return ResponseEntity.ok(result);
     }
 
     // DC모터 제어
@@ -922,10 +951,7 @@ public class RCCarController {
         String macAddress = (String) request.get("macAddress");
         Integer relayState = (Integer) request.get("relayState");
 
-        if (macAddress == null || relayState == null) {
-            return ResponseEntity.badRequest().body("macAddress와 relayState 필드가 필요합니다.");
-        }
-
+        // 서비스 호출
         String result = rcCarService.controlRelay(macAddress, relayState);
         return ResponseEntity.ok(result);
     }
