@@ -85,14 +85,14 @@ ESP32-CAM의 출력 핀은 아래와 같이 배정합니다.
 ***
 ### 2. 펌웨어 개발
 :memo: **1. 아두이노 IDE를 이용하여, HTTP 요청으로 카메라 스트리밍, 서보모터, DC모터, 릴레이를 제어하는 코드를 구현하고, ESP32-CAM에 업로드합니다.** <br>
-:warning: `-와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
-`-와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
-`-와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
-`-클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
-`-ESP32-CAM 부팅 시 ESP32-CAM의 ip주소와 MAC주소를 JSON으로 변환하여 스프링부트 서버로 전송합니다.` <br>
-`-스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 이미지로 디코딩하여 로컬에 저장합니다.` <br>
-`-스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체를 생성하여 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드에서 처리합니다.` <br>
-`-아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
+:warning: `와이파이 이름과 비밀번호, 서버의 IP 주소는 하드코딩하여 ESP32-CAM에 업로드합니다.` <br>
+`와이파이 환경이 바뀌거나, 서버를 다른 환경에서 구동한다면 수정해주어야 합니다.` <br>
+`와이파이 정보는 별도의 환경설정 파일을 사용하여 암호화할 수 있습니다.` <br>
+`클라우드 서버에서 구동하는 경우 서버의 도메인 주소를 사용하여 IP 주소를 직접 입력하지 않도록 자동으로 처리할 수 있습니다.` <br>
+`ESP32-CAM 부팅 시 ESP32-CAM의 ip주소와 MAC주소를 JSON으로 변환하여 스프링부트 서버로 전송합니다.` <br>
+`스트리밍 중 영상 캡쳐(사진으로 저장) 기능은 base64로 인코딩하여 스프링부트 서버로 전송하고, 스프링부트 서버의 서비스 로직에서 이미지로 디코딩하여 로컬에 저장합니다.` <br>
+`스트리밍 중 HTTP 요청을 처리하는 방식은 AsyncWebServer 객체를 생성하여 비동기 처리하는 대신 FreeRTOS를 이용하여 멀티스레드에서 처리합니다.` <br>
+`아두이노 IDE에서 보드는 ESP32 Wrover Module을 선택합니다.` <br>
 
 #### ESP32CAM.ino
 ```C++
@@ -613,7 +613,7 @@ class Esp32CamImage { // ESP32-CAM이 찍은 사진
 
 :books: **3. Repository 인터페이스 구현하기** <br>
 Entity를 저장할 Repository 인터페이스를 생성합니다. <br>
-Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 조회하는 쿼리 메서드를 추가합니다. <br>
+Esp32CamDeviceRepo에는 MAC 주소로 ESP32-CAM 객체를 쿼리하는 메서드를 추가합니다. <br>
 Esp32CamImageRepo에는 몇 개의 이미지가 저장되어 있는지 카운트하는 메서드를 추가합니다. <br>
 #### Esp32CamInfo.java
 ```Java
@@ -760,17 +760,33 @@ public class RCCarService {
     }
 
     // DC모터 제어
-    public String controlMotor(int command) {
-        String action;
-        switch (command) {
-            case 0 -> action = "정지";
-            case 1 -> action = "전진";
-            case 2 -> action = "후진";
-            case 3 -> action = "좌회전";
-            case 4 -> action = "우회전";
-            default -> throw new IllegalArgumentException("잘못된 명령어");
+    public String controlMotor(String macAddress, int motorState) {
+        // MAC 주소로 ESP32 조회
+        Esp32CamDevice device = deviceRepo.findByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("해당 MAC 주소의 장치가 없습니다: " + macAddress));
+
+        // ESP32-CAM IP 주소 가져오기
+        String deviceIp = device.getDeviceIp();
+
+        // ESP32에 POST 요청 보내기
+        try {
+            String url = "http://" + deviceIp + "/motor"; // ESP32 엔드포인트
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"motorState\":" + motorState + "}"))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return "ESP32 DC모터 제어 성공: " + response.body();
+            } else {
+                return "ESP32 DC모터 제어 실패: " + response.statusCode();
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("ESP32에 요청 실패", e);
         }
-        return "RC카 " + action;
     }
 
     // 릴레이 제어
@@ -857,11 +873,11 @@ public class RCCarService {
 |-------|-------|-------|-------|-------|
 | id로 장치 조회하기 | GET | /api/rc/device/{id} | | Esp32CamDevice (JSON) |
 | 전체 RC카 조회하기 | GET | /api/rc/devices | | `List<Esp32CamDeviceDTO>` |
-| RC카 등록하기 | POST | /api/rc/register | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "MyCar"} | Esp32CamDevice (JSON) |
-| RC카 수정하기 | PATCH | /api/rc/device/{id} | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "192.168.x.x", "deviceName": "NewName"} | Esp32CamDevice (JSON) |
+| RC카 등록하기 | POST | /api/rc/register | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "xxx.xxx.x.xx", "deviceName": "MyCar"} | Esp32CamDevice (JSON) |
+| RC카 수정하기 | PATCH | /api/rc/device/{id} | {"macAddress": "xx:xx:xx:xx:xx:xx", "deviceIp": "xxx.xxx.x.xx", "deviceName": "NewName"} | Esp32CamDevice (JSON) |
 | RC카 삭제하기 | DELETE | /api/rc/device/{id} | | {"message": "장치 삭제 완료"} |
 | 서보모터 제어 | POST | /api/rc/servo | {"macAddress": "xx:xx:xx:xx:xx:xx", "servoNum": 1, "angleIncrement": -10} | {"message": "Servo moved"} |
-| DC모터 제어 | POST | /api/rc/motor | {"motorState": 1} | "RC카 전진" |
+| DC모터 제어 | POST | /api/rc/motor | {"macAddress": "xx:xx:xx:xx:xx:xx", "motorState": 1} | {"message":"Motor state updated"} |
 | 릴레이 제어 | POST | /api/rc/relay | {"macAddress": "xx:xx:xx:xx:xx:xx", "relayState": 1} | {"message": "Relay ON"} |
 | 이미지 저장하기 | POST | /api/rc/image/upload | {"macAddress": "xx:xx:xx:xx:xx:xx", "image": "Base64String"} | {"message": "이미지 저장 완료", "path": "/path/to/image.jpg"} |
 | 이미지 가져오기 | GET | /api/rc/image | | {"id": "1", "imagePath": "경로", "deviceName": "MyCar"} |
@@ -940,9 +956,13 @@ public class RCCarController {
 
     // DC모터 제어
     @PostMapping("/motor")
-    public ResponseEntity<String> controlMotor(@RequestBody Map<String, Integer> request) {
-        int command = request.get("motorState");
-        return ResponseEntity.ok(rcCarService.controlMotor(command));
+    public ResponseEntity<String> controlMotor(@RequestBody Map<String, Object> request) {
+        String macAddress = (String) request.get("macAddress");
+        Integer motorState = (Integer) request.get("motorState");
+
+        // 서비스 호출
+        String result = rcCarService.controlMotor(macAddress, motorState);
+        return ResponseEntity.ok(result);
     }
 
     // 릴레이 제어
@@ -1298,7 +1318,7 @@ public interface RCCarApiService {
 
     // DC모터 제어
     @POST("/api/rc/motor")
-    Call<String> controlMotor(@Body Map<String, Integer> request);
+    Call<String> controlMotor(@Body Map<String, Object> request);
 
     // 릴레이 제어
     @POST("/api/rc/relay")
@@ -1973,7 +1993,7 @@ public class MainActivity extends AppCompatActivity {
                   @Override
                   public void run() {
                       try {
-                          // GET 요청 보낼 URL 생성
+                          // ESP32에 GET 요청을 보낼 엔드포인트
                           URL url = new URL("http://" + selectedDeviceIp + "/capture");
                           HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                           connection.setRequestMethod("GET");
@@ -2135,6 +2155,88 @@ public class MainActivity extends AppCompatActivity {
 <br>
 
 DC모터(바퀴) 제어하기 <br>
+:warning: `DC모터 제어는 안드로이드 앱과 ESP32-CAM이 직접 통신하도록 구현합니다.` <br>
+`이 프로젝트에서는 ESP32-CAM으로 RC카를 제작하고 스프링부트 API와 안드로이드 앱을 개발하여 디바이스-서버-클라이언트간 HTTP 통신 구조를 구현해보는 것을 목표로 하였지만, 일부 기능들은 스프링부트 서버를 거치지 않고 안드로이드 앱에서 ESP32-CAM으로 직접 제어하는 방식으로 구현하는것도 가능합니다.` <br>
+`HTTP 통신은 MQTT나 블루투스 방식과는 달리 응답 지연이 발생할 수 있고, DC모터의 경우 바퀴이기 때문에 응답지연이 생기면 조작이 불편해지기 때문에 스프링부트 서버를 거치지 않고 직접 통신하도록 구현합니다.` <br>
+`같은 이유로 앞에서 ESP32-CAM의 영상을 웹뷰로 실시간 스트리밍하는 기능도 스프링부트를 거치지 않고 직접 통신하도록 구현하였습니다.` <br>
+:warning: `서버를 거치지 않고 직접 통신하여 제어하는 방식은 보안에 취약할 수 있습니다.` <br>
+:warning: `안드로이드 앱에서 스프링부트 서버를 거치지 않고 ESP32로 직접 네트워크 요청을 하는 경우에는 스레드를 따로 만들어서 처리해야합니다.` <br>
+`레트로핏을 사용하여 HTTP 요청을 하는 경우에는 레트로핏에서 내부적으로 비동기 처리를 지원하여 자동으로 백그라운드 스레드에서 처리되고 응답이 오면 UI 스레드에서 콜백메서드가 호출되지만, ESP32와 직접 네트워크 통신하는 경우 요청이 지연되면 메인스레드가 멈출 수 있기 때문에 메인스레드에서는 사용자 입력과 UI 업데이트만 처리하고 네트워크 요청은 별도의 스레드를 생성하여 처리합니다.` <br><br>
+조이스틱과 비슷한 느낌으로 차량 이동을 제어하기 위해 안드로이드의 MotionEvent 클래스를 이용하여 버튼을 누르고 있는 동안만 차량이 움직이고, 버튼에서 손을 뗀 순간 정지하도록 구현합니다. <br>
+MotionEvent는 버튼을 눌렀을 때와 버튼에서 손을 뗐을 때 각각 ACTION_DOWN과 ACTION_UP을 콜백하며, 이 메서드들을 각각 Override하여 ESP32에게 motorState값 1~4를 전송하는 로직과 0을 전송하는 로직을 작성합니다. <br>
+### MainActivity.java
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+      ...
+
+        // 차량이동(DC모터) 버튼
+        buttonMotorForward = findViewById(R.id.buttonMotorForward);
+        buttonMotorBackward = findViewById(R.id.buttonMotorBackward);
+        buttonMotorLeft = findViewById(R.id.buttonMotorLeft);
+        buttonMotorRight = findViewById(R.id.buttonMotorRight);
+        // 차량이동(DC모터) 버튼 클릭 리스너
+        setupMotorButton(buttonMotorForward, selectedDeviceIp, 1); // 전진
+        setupMotorButton(buttonMotorBackward, selectedDeviceIp, 2); // 후진
+        setupMotorButton(buttonMotorLeft, selectedDeviceIp, 3); // 좌회전
+        setupMotorButton(buttonMotorRight, selectedDeviceIp, 4); // 우회전
+      }
+
+    // 차량이동 버튼 클릭 리스너 처리 함수
+    private void setupMotorButton(View button, String esp32Ip, int motorState) {
+        button.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        // 버튼 누른 순간 motorState값 전송 (백그라운드 스레드에서 실행)
+                        new Thread(() -> sendMotorCommand(esp32Ip, motorState)).start();
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        // 버튼에서 손을 뗀 순간 motorState값 0 전송 (백그라운드 스레드에서 실행)
+                        new Thread(() -> sendMotorCommand(esp32Ip, 0)).start();
+                        break;
+                }
+                return true;
+            }
+        });
+    }
+
+    // ESP32에 DC모터 제어 POST요청 보내기
+    private void sendMotorCommand(String esp32Ip, int motorState) {
+        new Thread(() -> {
+            try {
+                // ESP32에 POST 요청을 보낼 엔드포인트
+                URL url = new URL("http://" + esp32Ip + "/motor");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+
+                // JSON 데이터 작성
+                String jsonInputString = "{\"motorState\":" + motorState + "}";
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+
+                // 응답 코드 확인
+                int responseCode = conn.getResponseCode();
+                conn.disconnect();
+
+                // 결과 로그
+                Log.d("Motor Command", "Response Code: " + responseCode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+```
 
 
 <br><br>
